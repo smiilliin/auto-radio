@@ -547,7 +547,7 @@ class Radiograph(StateGraph[RadioState]):
         # # Save the TTS script to a file
         now = state["now"]
         topic = state["topic"]
-        script = json.loads(state["script"])
+        script = state["script"]
 
         tts_script = self.audio_manager.preprocess_for_tts(script)
 
