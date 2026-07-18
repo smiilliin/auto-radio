@@ -33,10 +33,11 @@ jobs:
         run: |
           cat << EOF > .env
           GH_TOKEN=${{ secrets.GH_TOKEN }}
+          VAST_API_KEY=${{ secrets.VAST_API_KEY }}
+          OPENROUTER_KEY=${{ secrets.OPENROUTER_KEY }}
           INSTANCE_ID=${{ secrets.INSTANCE_ID }}
           PORT=${{ secrets.PORT }}
           IP=${{ secrets.IP }}
-          VAST_API_KEY=${{ secrets.VAST_API_KEY }}
           EOF
       - name: Setup SSH
         run: |
