@@ -448,14 +448,15 @@ class Radiograph(StateGraph[RadioState]):
             )
             self.debug(f"response: {response}")
 
-            message = response.choices[0].message.content.strip()
+            message = response.choices[0].message.content
 
-            if not validation or validation(message):
-                break
+            if not message or (validation and not validation(message)):
+                self.debug(f"Validation failed for attempt {attempt + 1}. Retrying...")
+                continue
+            else:
+                return message.strip()
 
-            self.debug(f"Validation failed for attempt {attempt + 1}. Retrying...")
-
-        return message
+        raise ValueError("Max retries exceeded")
 
     def topic_node(self, state: RadioState):
         previous_topics = self.script_manager.load_topics()
