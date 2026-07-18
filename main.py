@@ -288,15 +288,17 @@ class RadioState(TypedDict):
 
 class AudioManager:
     base_path: Path
+    bgm_path: Path
     ref_text: str
     model: OmniVoice
 
-    def __init__(self, base_path: Path, ref_text: str):
+    def __init__(self, base_path: Path, ref_text: str, bgm_path: Path):
         self.base_path = base_path
         self.model = OmniVoice.from_pretrained(
             "k2-fsa/OmniVoice", device_map="cuda:0", dtype=torch.float16
         )
         self.ref_text = ref_text
+        self.bgm_path = bgm_path
 
     def preprocess_for_tts(self, script):
         processed_script = []
@@ -342,7 +344,7 @@ class AudioManager:
 
         return output_path
 
-    def mix_bgm(self, now, bgm_path):
+    def mix_bgm(self, now):
         if not self.base_path.joinpath("audio").exists():
             self.base_path.joinpath("audio").mkdir(parents=True)
 
@@ -351,7 +353,7 @@ class AudioManager:
         output_path = self.base_path / "audio" / f"{now}.mp3"
 
         voice = AudioSegment.from_file(tts_path)
-        bgm = AudioSegment.from_file(bgm_path)
+        bgm = AudioSegment.from_file(self.bgm_path)
 
         # BGM 길이를 음성에 맞춤 (loop)
         if len(bgm) < len(voice):
@@ -404,7 +406,9 @@ class Radiograph(StateGraph[RadioState]):
             base_path.mkdir(parents=True)
 
         self.script_manager = ScriptManager(base_path=base_path)
-        self.audio_manager = AudioManager(base_path=base_path, ref_text=REF_TEXT)
+        self.audio_manager = AudioManager(
+            base_path=base_path, ref_text=REF_TEXT, bgm_path=Path(".") / "bgm.mp3"
+        )
 
         self.client = client
         self.is_debug = is_debug
@@ -556,9 +560,7 @@ class Radiograph(StateGraph[RadioState]):
         tts_path = self.audio_manager.save_tts(tts_script, now)
         self.debug(f"🎧 TTS audio saved for topic '{topic}' at {tts_path}")
 
-        audio_path = self.audio_manager.mix_bgm(
-            now, bgm_path=self.base_path / "bgm.mp3"
-        )
+        audio_path = self.audio_manager.mix_bgm(now)
         self.debug(f"🎶 BGM mixed for topic '{topic}' at {audio_path}")
 
         state["audio_path"] = audio_path
