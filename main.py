@@ -590,14 +590,8 @@ app = graph.compile()
 result = app.invoke(RadioState())
 
 
-# In[268]:
+# In[ ]:
 
 
-result
-
-
-# In[269]:
-
-
-json.loads(result["script"])
+print(result)
 
