@@ -381,6 +381,7 @@ class Radiograph(StateGraph[RadioState]):
         client: OpenAI,
         base_path: Path,
         level: str,
+        REF_TEXT: str,
         TOPIC_PROMPT: str,
         SCRIPT_PROMPT: str,
         is_debug: bool = False,
@@ -394,7 +395,7 @@ class Radiograph(StateGraph[RadioState]):
             base_path.mkdir(parents=True)
 
         self.script_manager = ScriptManager(base_path=base_path)
-        self.audio_manager = AudioManager(base_path=base_path)
+        self.audio_manager = AudioManager(base_path=base_path, ref_text=REF_TEXT)
 
         self.client = client
         self.is_debug = is_debug
@@ -547,13 +548,14 @@ class Radiograph(StateGraph[RadioState]):
         return state
 
 
-# In[266]:
+# In[ ]:
 
 
 graph = Radiograph(
     client=client,
     base_path=Path("./jlpt_n4"),
     level="N4",
+    REF_TEXT=REF_TEXT,
     TOPIC_PROMPT=TOPIC_PROMPT,
     SCRIPT_PROMPT=SCRIPT_PROMPT,
     is_debug=True,
