@@ -450,10 +450,16 @@ class Radiograph(StateGraph[RadioState]):
 
             message = response.choices[0].message.content
 
-            if not message or (validation and not validation(message)):
+            if not message:
                 self.debug(f"Validation failed for attempt {attempt + 1}. Retrying...")
                 continue
             else:
+                if validation and not validation(message):
+                    self.debug(
+                        f"Validation failed for attempt {attempt + 1}. Retrying..."
+                    )
+                    continue
+
                 return message.strip()
 
         raise ValueError("Max retries exceeded")

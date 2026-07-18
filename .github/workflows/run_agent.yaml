@@ -1,0 +1,47 @@
+name: Run Auto Radio
+
+concurrency:
+  group: auto-radio
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  auto-radio:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - uses: astral-sh/setup-uv@v6
+
+      - run: |
+          uv venv
+          source .venv/bin/activate
+          uv pip install python-dotenv
+          pip install vastai
+
+      - name: Create .env
+        run: |
+          cat << EOF > .env
+          GH_TOKEN=${{ secrets.GH_TOKEN }}
+          INSTANCE_ID=${{ secrets.INSTANCE_ID }}
+          PORT=${{ secrets.PORT }}
+          IP=${{ secrets.IP }}
+          VAST_API_KEY=${{ secrets.VAST_API_KEY }}
+          EOF
+
+      - name: Run Auto Radio
+        env:
+          VAST_API_KEY: ${{ secrets.VAST_API_KEY }}
+        run: |
+          source .venv/bin/activate
+          python -u vastai.py
