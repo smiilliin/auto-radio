@@ -218,7 +218,7 @@ PRE_SCRIPT = """
 REF_TEXT = "こんにちは、みなさん！「ゆるっと電波 Nご」にようこそ！私はハヤトです。今日は楽しいお話をたくさんしますよ。よろしくお願いしますね！"
 
 
-# In[264]:
+# In[ ]:
 
 
 import json
@@ -248,8 +248,13 @@ class ScriptManager:
         with open(topics_file, "w", encoding="utf-8") as f:
             json.dump(self.topics, f, indent=2, ensure_ascii=False)
 
-    def new_topic(self, topic: str):
-        self.topics.append(topic)
+    def new_topic(self, topic: str, now: str):
+        self.topics.append(
+            {
+                "time": now,
+                "topic": topic,
+            }
+        )
         self.save_topics()
 
     def save_script(self, script, topic, now):
@@ -487,7 +492,10 @@ class Radiograph(StateGraph[RadioState]):
         self.debug(f"previous_topics: {previous_topics}")
 
         prompt = self.TOPIC_PROMPT.replace("{LEVEL}", self.level).replace(
-            "{PREVIOUS_TOPICS}", json.dumps(previous_topics, ensure_ascii=False)
+            "{PREVIOUS_TOPICS}",
+            json.dumps(
+                [topic["topic"] for topic in previous_topics], ensure_ascii=False
+            ),
         )
 
         self.debug(f"topic_node prompt: {prompt}")
@@ -496,7 +504,10 @@ class Radiograph(StateGraph[RadioState]):
             prompt, model="google/gemma-4-26b-a4b-it:free", reasoning=False
         )
 
-        self.script_manager.new_topic(topic)
+        now = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.script_manager.new_topic(topic, now)
+
+        state["now"] = now
         state["topic"] = topic
 
         self.debug(f"generated topic: {topic}")
@@ -543,10 +554,10 @@ class Radiograph(StateGraph[RadioState]):
 
         script = pre_script + script
 
-        now = datetime.now().strftime("%Y%m%d_%H%M%S")
+        now = state["now"]
+
         self.script_manager.save_script(script, state["topic"], now)
 
-        state["now"] = now
         state["script"] = script
 
         self.debug(f"generated script: {script}")
