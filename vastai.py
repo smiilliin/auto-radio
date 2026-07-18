@@ -24,6 +24,8 @@ try:
     subprocess.run(
         [
             "ssh",
+            "-i",
+            os.path.expanduser("~/.ssh/id_ed25519"),
             "-o",
             "StrictHostKeyChecking=no",
             "-o",
@@ -57,6 +59,8 @@ try:
     subprocess.run(
         [
             "scp",
+            "-i",
+            os.path.expanduser("~/.ssh/id_ed25519"),
             "-o",
             "StrictHostKeyChecking=no",
             "-o",
@@ -72,6 +76,8 @@ try:
     subprocess.run(
         [
             "ssh",
+            "-i",
+            os.path.expanduser("~/.ssh/id_ed25519"),
             "-o",
             "StrictHostKeyChecking=no",
             "-o",
@@ -96,6 +102,8 @@ try:
     subprocess.run(
         [
             "ssh",
+            "-i",
+            os.path.expanduser("~/.ssh/id_ed25519"),
             "-o",
             "StrictHostKeyChecking=no",
             "-o",

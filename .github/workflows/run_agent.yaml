@@ -38,6 +38,11 @@ jobs:
           IP=${{ secrets.IP }}
           VAST_API_KEY=${{ secrets.VAST_API_KEY }}
           EOF
+      - name: Setup SSH
+        run: |
+            mkdir -p ~/.ssh
+            echo "${{ secrets.VAST_SSH_KEY }}" > ~/.ssh/id_ed25519
+            chmod 600 ~/.ssh/id_ed25519
 
       - name: Run Auto Radio
         env:
