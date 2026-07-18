@@ -5,7 +5,7 @@ import subprocess
 
 dotenv.load_dotenv()
 
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+GITHUB_TOKEN = os.getenv("GH_TOKEN")
 INSTANCE_ID = os.getenv("INSTANCE_ID")
 PORT = os.getenv("PORT")
 IP = os.getenv("IP")
