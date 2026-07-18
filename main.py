@@ -57,7 +57,7 @@ client = OpenAI(
 )
 
 
-# In[270]:
+# In[ ]:
 
 
 TOPIC_PROMPT = """
@@ -69,6 +69,7 @@ TOPIC_PROMPT = """
 - 일상적이고 공감 가능한 주제.
 - 10~15분 분량의 라디오로 확장 가능해야 한다.
 - 설명하기 쉬운 일본어 표현이 최소 2개 이상 떠오르는 주제여야 한다.
+- 주제는 뒤에 について가 붙으면 자연스러운 형태로 끝나야 한다.
 
 좋은 예:
 - コンビニでよく買うもの
@@ -82,6 +83,7 @@ TOPIC_PROMPT = """
 - 実存主義
 - 量子力学
 - グローバル経済
+- 一番好きな季節について
 
 [출력 규칙]
 
@@ -126,7 +128,7 @@ SCRIPT_PROMPT = """
 
 문장 구조:
 - 문장은 짧고 유기적으로 작성
-- 문장을 과도하게 길게 작성하지 않음(한 문장 40자 이내)
+- 문장을 과도하게 길게 작성하지 않음(한 문장 35자 이내)
 - 자연스러운 호흡을 위해 「、」「。」 적절히 사용
 
 청해 최적화:
@@ -158,22 +160,22 @@ SCRIPT_PROMPT = """
 - 주제와 관련된 시작 멘트 포함.
 
 [セグメント1]
-- 5~10개의 문장.
+- 5~8개의 문장.
 - 주제에 대한 이야기.
 - 마지막 문장은 청취자에게 질문한다.
 
 [セグメント2]
-- 5~10개의 문장.
+- 5~8개의 문장.
 - 주제에 대한 이야기.
 - 마지막 문장은 청취자에게 질문한다.
 
 [セグメント3]
-- 5~10개의 문장.
+- 5~8개의 문장.
 - 주제를 마무리한다.
 - 마지막 문장은 청취자가 자신의 경험을 떠올리게 한다.
 
 [コーナー]
-- 6~12개의 문장.
+- 6~10개의 문장.
 - 첫 문장은 반드시:
   「ここで、今日の日本語の表現を紹介します。」
 - 핵심 표현 2개를 소개한다.
@@ -202,6 +204,11 @@ SCRIPT_PROMPT = """
 - part는 opening, part1, part2, part3, corner, ending 중 하나만 사용한다.
 
 출력 결과는 반드시 유효한 JSON 배열이 되도록 점검한다.
+"""
+PRE_SCRIPT = """
+みなさん、こんにちは！
+「ゆるっと電波 {LEVEL}」へようこそ！
+私はハヤトです。
 """
 
 REF_TEXT = "こんにちは、みなさん！「ゆるっと電波 Nご」にようこそ！私はハヤトです。今日は楽しいお話をたくさんしますよ。よろしくお願いしますね！"
@@ -335,12 +342,12 @@ class AudioManager:
 
         return output_path
 
-    def mix_bgm(self, now):
+    def mix_bgm(self, now, bgm_path):
         if not self.base_path.joinpath("audio").exists():
             self.base_path.joinpath("audio").mkdir(parents=True)
 
         tts_path = self.base_path / "tts" / f"{now}.mp3"
-        bgm_path = self.base_path / "bgm.mp3"
+        # bgm_path = self.base_path / "bgm.mp3"
         output_path = self.base_path / "audio" / f"{now}.mp3"
 
         voice = AudioSegment.from_file(tts_path)
@@ -372,6 +379,7 @@ class Radiograph(StateGraph[RadioState]):
 
     TOPIC_PROMPT: str
     SCRIPT_PROMPT: str
+    PRE_SCRIPT: str
 
     script_manager: ScriptManager
     audio_manager: AudioManager
@@ -384,6 +392,7 @@ class Radiograph(StateGraph[RadioState]):
         REF_TEXT: str,
         TOPIC_PROMPT: str,
         SCRIPT_PROMPT: str,
+        PRE_SCRIPT: str,
         is_debug: bool = False,
     ):
         super().__init__(
@@ -404,6 +413,7 @@ class Radiograph(StateGraph[RadioState]):
 
         self.TOPIC_PROMPT = TOPIC_PROMPT
         self.SCRIPT_PROMPT = SCRIPT_PROMPT
+        self.PRE_SCRIPT = PRE_SCRIPT
 
         self.add_node("topic", self.topic_node)
         self.add_node("script", self.script_node)
@@ -499,6 +509,12 @@ class Radiograph(StateGraph[RadioState]):
             validation=self.script_validation,
         )
 
+        script = json.loads(script)
+        pre_script = self.PRE_SCRIPT.replace("{LEVEL}", self.level).strip().split("\n")
+        pre_script = [{"part": "opening", "text": line} for line in pre_script]
+
+        script = pre_script + script
+
         now = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.script_manager.save_script(script, state["topic"], now)
 
@@ -540,7 +556,9 @@ class Radiograph(StateGraph[RadioState]):
         tts_path = self.audio_manager.save_tts(tts_script, now)
         self.debug(f"🎧 TTS audio saved for topic '{topic}' at {tts_path}")
 
-        audio_path = self.audio_manager.mix_bgm(now)
+        audio_path = self.audio_manager.mix_bgm(
+            now, bgm_path=self.base_path / "bgm.mp3"
+        )
         self.debug(f"🎶 BGM mixed for topic '{topic}' at {audio_path}")
 
         state["audio_path"] = audio_path
@@ -558,6 +576,7 @@ graph = Radiograph(
     REF_TEXT=REF_TEXT,
     TOPIC_PROMPT=TOPIC_PROMPT,
     SCRIPT_PROMPT=SCRIPT_PROMPT,
+    PRE_SCRIPT=PRE_SCRIPT,
     is_debug=True,
 )
 app = graph.compile()
