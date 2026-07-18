@@ -24,6 +24,10 @@ try:
     subprocess.run(
         [
             "ssh",
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
             "-p",
             str(PORT),
             f"root@{IP}",
@@ -51,13 +55,27 @@ try:
         check=True,
     )
     subprocess.run(
-        ["scp", "-P", str(PORT), ".env", f"root@{IP}:/workspace/auto-radio/.env"],
+        [
+            "scp",
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+            "-P",
+            str(PORT),
+            ".env",
+            f"root@{IP}:/workspace/auto-radio/.env",
+        ],
         check=True,
     )
 
     subprocess.run(
         [
             "ssh",
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
             "-p",
             str(PORT),
             f"root@{IP}",
@@ -78,6 +96,10 @@ try:
     subprocess.run(
         [
             "ssh",
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
             "-p",
             str(PORT),
             f"root@{IP}",
