@@ -270,7 +270,7 @@ from pathlib import Path
 import json
 from datetime import datetime
 from pydub import AudioSegment
-import re
+import time
 
 from omnivoice import OmniVoice
 import soundfile as sf
@@ -441,11 +441,24 @@ class Radiograph(StateGraph[RadioState]):
         max_retries: int = 3,
     ):
         for attempt in range(max_retries):
-            response = self.client.chat.completions.create(
-                model=model,
-                messages=[{"role": "user", "content": prompt}],
-                extra_body={"reasoning": {"enabled": reasoning}},
-            )
+            try:
+                response = self.client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": prompt,
+                        }
+                    ],
+                    extra_body={"reasoning": {"enabled": reasoning}},
+                )
+
+            except Exception as e:
+                self.debug(f"OpenRouter Error: {e}")
+
+                time.sleep(5)
+                continue
+
             self.debug(f"response: {response}")
 
             message = response.choices[0].message.content
