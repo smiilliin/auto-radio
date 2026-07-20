@@ -2,23 +2,31 @@ import dotenv
 import os
 import time
 import subprocess
+import json
 
 dotenv.load_dotenv()
 
 GITHUB_TOKEN = os.getenv("GH_TOKEN")
 INSTANCE_ID = os.getenv("INSTANCE_ID")
-PORT = os.getenv("PORT")
-IP = os.getenv("IP")
+# PORT = os.getenv("PORT")
+# IP = os.getenv("IP")
 
 
 try:
     subprocess.run(["vastai", "start", "instance", str(INSTANCE_ID)], check=True)
     while True:
         result = subprocess.check_output(
-            ["vastai", "show", "instance", str(INSTANCE_ID)]
+            ["vastai", "show", "instance", str(INSTANCE_ID), "--raw"]
         )
-        if "running" in result.decode():
+
+        result = json.loads(result)
+
+        if result["actual_status"] == "running":
+            IP = result["public_ipaddr"]
+            PORT = result["ports"]["22/tcp"][0]["HostPort"]
+
             break
+
         time.sleep(10)
 
     subprocess.run(
@@ -87,13 +95,16 @@ try:
             f"root@{IP}",
             f"""
                 cd /workspace/auto-radio
+                git pull
+
                 if [ ! -d .venv ]; then
                     uv python install 3.13
                     uv venv --python 3.13
-                    uv pip install -r requirements.txt
                 fi
-                git pull
+
+                uv sync
                 source .venv/bin/activate
+                
                 python main.py
             """,
         ],
