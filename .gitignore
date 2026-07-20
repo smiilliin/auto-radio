@@ -12,3 +12,5 @@ wheels/
 
 jlpt_n4
 main.ipynb
+
+uv.lock
