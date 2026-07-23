@@ -209,11 +209,13 @@ TOPIC_PROMPT = """
 
 # 출력 결과는 반드시 유효한 JSON 배열이 되도록 점검한다.
 # """
-# PRE_SCRIPT = """
-# みなさん、こんにちは！
-# 「ゆるっと電波 {LEVEL}」へようこそ！
-# 私はハヤトです。
-# """
+
+PRE_SCRIPT = """
+みなさん、こんにちは！
+「ゆるっと電波 {LEVEL}」へようこそ！
+私はハヤトです。
+"""
+
 COMMON_PROMPT = """
 당신은 일본어 라디오 프로그램
 「ゆるっと電波 {LEVEL}」의 진행자 하야토다.
@@ -572,9 +574,9 @@ class Radiograph(StateGraph[RadioState]):
     PART3_PROMPT: str
     CORNER_PROMPT: str
     ENDING_PROMPT: str
+    PRE_SCRIPT: str
 
     # SCRIPT_PROMPT: str
-    # PRE_SCRIPT: str
 
     script_manager: ScriptManager
     audio_manager: AudioManager
@@ -592,6 +594,7 @@ class Radiograph(StateGraph[RadioState]):
         PART3_PROMPT: str,
         CORNER_PROMPT: str,
         ENDING_PROMPT: str,
+        PRE_SCRIPT: str,
         is_debug: bool = False,
     ):
         super().__init__(
@@ -619,9 +622,9 @@ class Radiograph(StateGraph[RadioState]):
         self.PART3_PROMPT = PART3_PROMPT
         self.CORNER_PROMPT = CORNER_PROMPT
         self.ENDING_PROMPT = ENDING_PROMPT
+        self.PRE_SCRIPT = PRE_SCRIPT
 
         # self.SCRIPT_PROMPT = SCRIPT_PROMPT
-        # self.PRE_SCRIPT = PRE_SCRIPT
 
         # self.add_node("topic", self.topic_node)
         # self.add_node("script", self.script_node)
@@ -702,6 +705,7 @@ class Radiograph(StateGraph[RadioState]):
         raise ValueError("Max retries exceeded")
 
     def topic_node(self, state: RadioState):
+        # self.PRE_SCRIPT = PRE_SCRIPTioState):
         previous_topics = self.script_manager.load_topics()
 
         self.debug(f"previous_topics: {previous_topics}")
@@ -892,7 +896,7 @@ class Radiograph(StateGraph[RadioState]):
         return state
 
     def merge_node(self, state):
-        pre_script = self.PRE_SCRIPT.replace("{LEVEL}", self.level).strip().split("\n")
+        pre_script = self.PRE_SCRIPT.format(LEVEL=self.level).strip().split("\n")
 
         pre_script = [
             {
@@ -976,6 +980,7 @@ graph = Radiograph(
     PART3_PROMPT=PART3_PROMPT,
     CORNER_PROMPT=CORNER_PROMPT,
     ENDING_PROMPT=ENDING_PROMPT,
+    PRE_SCRIPT=PRE_SCRIPT,
     is_debug=True,
 )
 app = graph.compile()
