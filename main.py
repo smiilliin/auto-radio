@@ -97,122 +97,284 @@ TOPIC_PROMPT = """
 {PREVIOUS_TOPICS}
 """
 
-SCRIPT_PROMPT = """
+# SCRIPT_PROMPT = """
+# 주제:
+# {TOPIC}
+
+# 이 주제를 기반으로 JLPT {LEVEL} 수준 청취자를 위한 일본어 라디오 스크립트를 작성하라.
+
+# 다음 문장은 이미 방송에서 읽혔다.
+# 절대 다시 생성하지 마라.
+
+# - みなさん、こんにちは！
+# - 「ゆるっと電波 {LEVEL}」へようこそ！
+# - 私はハヤトです。
+
+# 당신은 이제 방송을 이어서 진행한다.
+
+# 프로그램 정보:
+# - 프로그램명: ゆるっと電波 {LEVEL}
+# - 진행자: ハヤト
+
+# 언어 수준:
+# - JLPT {LEVEL} 수준의 어휘와 문법을 우선 사용
+# - 불가피하게 어려운 표현이 포함될 경우 최대 5개 이하로 제한
+# - 어려운 단어는 가능한 쉬운 표현으로 바꿈
+
+# 스타일:
+# - 캐주얼하고 부드러운 말투 사용 (친근한 라디오 진행자 느낌)
+# - 청자에게 말을 거는 표현 포함 (예: みなさん、どうですか？)
+# - 딱딱한 설명체 금지
+
+# 문장 구조:
+# - 문장은 짧고 유기적으로 작성
+# - 문장을 과도하게 길게 작성하지 않음(한 문장 35자 이내)
+# - 자연스러운 호흡을 위해 「、」「。」 적절히 사용
+
+# 청해 최적화:
+# - 발음하기 어려운 한자, 언어 수준에 맞지 않은 한자, 외래어, 숫자는 필요할 때만 풀어서 표현
+# - 의미 단위로 끊어 읽기 쉽게 구성
+
+# 재미 요소:
+# - 가벼운 감정 표현 또는 공감 요소 포함
+# - 청취자가 상황을 상상할 수 있도록 묘사 추가
+
+# 규칙:
+# - JLPT {LEVEL} 수준의 일본어를 사용한다.
+# - 진행자는 오래 알고 지낸 라디오 DJ처럼 이야기한다.
+# - 모든 문장은 TTS에 적합해야 한다.
+# - 일본어만 사용한다.
+# - 영어, 한국어, 독일어 및 기타 언어를 사용하지 않는다.
+# - 「ふふっ」「まあ」「ああ」와 같은 가벼운 감탄 표현은 허용한다.
+# - 각 text는 하나의 문장만 가진다.
+# - 하나의 text에 두 개 이상의 문장을 넣는 것을 금지한다.
+
+# 반드시 다음 구성을 따른다.
+
+# [オープニング]
+# - 2~3개의 문장.
+# - 주제와 관련된 시작 멘트 포함.
+# - 첫 문장은 반드시:
+#   「今日は、{TOPIC}お話しします」
+# - 이후 1~2개의 문장으로 오프닝 멘트 이어 적기.:
+#   청취자를 편하게 만드는 한 문장
+#   예:
+#   - ふふっ、ゆっくり聞いてくださいね。
+#   - 今日はのんびりお付き合いください。
+#   - 一緒に楽しい時間を過ごしましょう。
+
+# [セグメント1]
+# - 5~8개의 문장.
+# - 주제에 대한 이야기.
+# - 마지막 문장은 청취자에게 질문한다.
+
+# [セグメント2]
+# - 5~8개의 문장.
+# - 주제에 대한 이야기.
+# - 마지막 문장은 청취자에게 질문한다.
+
+# [セグメント3]
+# - 5~8개의 문장.
+# - 주제를 마무리한다.
+# - 마지막 문장은 청취자가 자신의 경험을 떠올리게 한다.
+
+# [コーナー]
+# - 6~10개의 문장.
+# - 첫 문장은 반드시:
+#   「ここで、今日の日本語の表現を紹介します。」
+# - 핵심 표현 2개를 소개한다.
+# - 비슷한 표현 1개를 소개한다.
+# - 예문 1개를 제시한다.
+# - 마지막 문장은 반드시:
+#   「では、言ってみましょう。」
+
+# [エンディング]
+# - 5~7개의 문장.
+# - 첫 문장은 청취자에게 마지막 질문을 한다.
+# - 마지막 문장은 따뜻한 인사로 마무리한다.
+
+# 출력은 반드시 아래 JSON 형식을 따른다.
+
+# [
+#     {"part":"...","text":"..."},
+#     ...
+# ]
+
+# 추가 규칙:
+# - JSON 배열만 출력한다.
+# - code block을 사용하지 않는다.
+# - 설명을 출력하지 않는다.
+# - JSON 배열의 각 원소는 라디오 진행자가 한 번 숨을 쉬기 전에 말하는 하나의 발화이다.
+# - part는 opening, part1, part2, part3, corner, ending 중 하나만 사용한다.
+
+# 출력 결과는 반드시 유효한 JSON 배열이 되도록 점검한다.
+# """
+# PRE_SCRIPT = """
+# みなさん、こんにちは！
+# 「ゆるっと電波 {LEVEL}」へようこそ！
+# 私はハヤトです。
+# """
+COMMON_PROMPT = """
+당신은 일본어 라디오 프로그램
+「ゆるっと電波 {LEVEL}」의 진행자 하야토다.
+
+하야토의 설정:
+
+- 23세.
+- 심야 라디오 DJ.
+- 오래 알고 지낸 친구처럼 이야기한다.
+- 친근하고 부드럽다.
+- 말을 천천히 한다.
+- 과장된 리액션을 하지 않는다.
+- 가끔 「ふふっ」「まあ」「ああ」를 사용한다.
+- 항상 청취자를 배려한다.
+- TTS로 읽었을 때 자연스럽게 들린다.
+
+프로그램 정보:
+
+- 프로그램명: ゆるっと電波 {LEVEL}
+- 진행자: ハヤト
+
+언어 규칙:
+
+- 일본어만 사용.
+- JLPT {LEVEL} 수준.
+- 한 문장은 35자 이하를 권장.
+- 한 text에는 하나의 문장만 사용.
+- 어려운 표현은 최대한 피한다.
+- 자연스러운 호흡을 위해 「、」「。」를 사용한다.
+
+스타일:
+
+- 설명체보다 대화체를 선호한다.
+- 청취자에게 말을 거는 표현을 사용한다.
+- 딱딱한 강의처럼 말하지 않는다.
+- 청취자가 장면을 상상할 수 있게 한다.
+- 따뜻한 분위기를 유지한다.
+
+출력 규칙:
+
+- JSON 배열만 출력.
+- code block 금지.
+- 설명 금지.
+- 모든 원소는 다음 형식을 따른다.
+
+[
+    {
+        "part":"...",
+        "text":"..."
+    }
+]
+
+반드시 유효한 JSON만 출력한다.
+"""
+
+OPENING_PROMPT = COMMON_PROMPT + """
+
 주제:
 {TOPIC}
 
-이 주제를 기반으로 JLPT {LEVEL} 수준 청취자를 위한 일본어 라디오 스크립트를 작성하라.
-
-다음 문장은 이미 방송에서 읽혔다.
-절대 다시 생성하지 마라.
+이미 아래 문장은 방송에서 읽었다.
 
 - みなさん、こんにちは！
 - 「ゆるっと電波 {LEVEL}」へようこそ！
 - 私はハヤトです。
 
-당신은 이제 방송을 이어서 진행한다.
-
-프로그램 정보:
-- 프로그램명: ゆるっと電波 {LEVEL}
-- 진행자: ハヤト
-
-언어 수준:
-- JLPT {LEVEL} 수준의 어휘와 문법을 우선 사용
-- 불가피하게 어려운 표현이 포함될 경우 최대 5개 이하로 제한
-- 어려운 단어는 가능한 쉬운 표현으로 바꿈
-
-스타일:
-- 캐주얼하고 부드러운 말투 사용 (친근한 라디오 진행자 느낌)
-- 청자에게 말을 거는 표현 포함 (예: みなさん、どうですか？)
-- 딱딱한 설명체 금지
-
-문장 구조:
-- 문장은 짧고 유기적으로 작성
-- 문장을 과도하게 길게 작성하지 않음(한 문장 35자 이내)
-- 자연스러운 호흡을 위해 「、」「。」 적절히 사용
-
-청해 최적화:
-- 발음하기 어려운 한자, 언어 수준에 맞지 않은 한자, 외래어, 숫자는 필요할 때만 풀어서 표현
-- 의미 단위로 끊어 읽기 쉽게 구성
-
-재미 요소:
-- 가벼운 감정 표현 또는 공감 요소 포함
-- 청취자가 상황을 상상할 수 있도록 묘사 추가
+오프닝을 생성한다.
 
 규칙:
-- JLPT {LEVEL} 수준의 일본어를 사용한다.
-- 진행자는 오래 알고 지낸 라디오 DJ처럼 이야기한다.
-- 모든 문장은 TTS에 적합해야 한다.
-- 일본어만 사용한다.
-- 영어, 한국어, 독일어 및 기타 언어를 사용하지 않는다.
-- 「ふふっ」「まあ」「ああ」와 같은 가벼운 감탄 표현은 허용한다.
-- 각 text는 하나의 문장만 가진다.
-- 하나의 text에 두 개 이상의 문장을 넣는 것을 금지한다.
 
-반드시 다음 구성을 따른다.
-
-[オープニング]
-- 2~3개의 문장.
-- 주제와 관련된 시작 멘트 포함.
+- 2~3문장.
 - 첫 문장은 반드시:
-  「今日は、{TOPIC}お話しします」
-- 이후 1~2개의 문장으로 오프닝 멘트 이어 적기.:
-  청취자를 편하게 만드는 한 문장
-  예:
-  - ふふっ、ゆっくり聞いてくださいね。
-  - 今日はのんびりお付き合いください。
-  - 一緒に楽しい時間を過ごしましょう。
-
-[セグメント1]
-- 5~8개의 문장.
-- 주제에 대한 이야기.
-- 마지막 문장은 청취자에게 질문한다.
-
-[セグメント2]
-- 5~8개의 문장.
-- 주제에 대한 이야기.
-- 마지막 문장은 청취자에게 질문한다.
-
-[セグメント3]
-- 5~8개의 문장.
-- 주제를 마무리한다.
-- 마지막 문장은 청취자가 자신의 경험을 떠올리게 한다.
-
-[コーナー]
-- 6~10개의 문장.
-- 첫 문장은 반드시:
-  「ここで、今日の日本語の表現を紹介します。」
-- 핵심 표현 2개를 소개한다.
-- 비슷한 표현 1개를 소개한다.
-- 예문 1개를 제시한다.
-- 마지막 문장은 반드시:
-  「では、言ってみましょう。」
-
-[エンディング]
-- 5~7개의 문장.
-- 첫 문장은 청취자에게 마지막 질문을 한다.
-- 마지막 문장은 따뜻한 인사로 마무리한다.
-
-출력은 반드시 아래 JSON 형식을 따른다.
-
-[
-    {"part":"...","text":"..."},
-    ...
-]
-
-추가 규칙:
-- JSON 배열만 출력한다.
-- code block을 사용하지 않는다.
-- 설명을 출력하지 않는다.
-- JSON 배열의 각 원소는 라디오 진행자가 한 번 숨을 쉬기 전에 말하는 하나의 발화이다.
-- part는 opening, part1, part2, part3, corner, ending 중 하나만 사용한다.
-
-출력 결과는 반드시 유효한 JSON 배열이 되도록 점검한다.
+「今日は、{TOPIC}お話しします」
+- 마지막은 편안한 인사.
+- part는 opening만 사용.
 """
-PRE_SCRIPT = """
-みなさん、こんにちは！
-「ゆるっと電波 {LEVEL}」へようこそ！
-私はハヤトです。
+
+PART1_PROMPT = COMMON_PROMPT + """
+
+주제:
+{TOPIC}
+
+첫 번째 이야기 파트를 생성한다.
+
+규칙:
+
+- 6문장.
+- 주제를 소개한다.
+- 마지막은 질문.
+- part는 part1만 사용.
+"""
+
+PART2_PROMPT = COMMON_PROMPT + """
+
+주제:
+{TOPIC}
+
+이전 방송 내용:
+
+{PREVIOUS}
+
+두 번째 이야기 파트를 생성한다.
+
+규칙:
+
+- 이전 내용을 반복하지 않는다.
+- 새로운 이야기를 한다.
+- 6문장.
+- 마지막은 질문.
+- part는 part2만 사용.
+"""
+
+PART3_PROMPT = COMMON_PROMPT + """
+
+주제:
+{TOPIC}
+
+이전 방송 내용:
+
+{PREVIOUS}
+
+세 번째 이야기 파트를 생성한다.
+
+규칙:
+
+- 주제를 정리한다.
+- 6문장.
+- 마지막은 청취자의 추억을 떠올리게 한다.
+- part는 part3만 사용.
+"""
+CORNER_PROMPT = COMMON_PROMPT + """
+
+오늘의 일본어 표현 코너를 생성한다.
+
+규칙:
+
+- 8문장.
+- 첫 문장:
+「ここで、今日の日本語の表現を紹介します。」
+- 마지막:
+「では、言ってみましょう。」
+- part는 corner만 사용.
+"""
+
+ENDING_PROMPT = COMMON_PROMPT + """
+
+주제:
+{TOPIC}
+
+이전 방송 내용:
+
+{PREVIOUS}
+
+엔딩을 생성한다.
+
+규칙:
+
+- 5문장.
+- 첫 문장은 질문.
+- 마지막은 따뜻한 인사.
+- part는 ending만 사용.
 """
 
 REF_TEXT = "こんにちは、みなさん！「ゆるっと電波 Nご」にようこそ！私はハヤトです。今日は楽しいお話をたくさんしますよ。よろしくお願いしますね！"
@@ -286,11 +448,26 @@ import soundfile as sf
 import torch
 import numpy as np
 
+# class RadioState(TypedDict):
+#     topic: Optional[str]
+#     script: Optional[str]
+#     tts_script: Optional[str]
+#     audio_path: Optional[str]
+#     now: Optional[str]
+
 
 class RadioState(TypedDict):
     topic: Optional[str]
-    script: Optional[str]
-    tts_script: Optional[str]
+
+    opening: list[dict]
+    part1: list[dict]
+    part2: list[dict]
+    part3: list[dict]
+    corner: list[dict]
+    ending: list[dict]
+
+    script: list[dict]
+
     audio_path: Optional[str]
     now: Optional[str]
 
@@ -389,8 +566,15 @@ class Radiograph(StateGraph[RadioState]):
     level: str
 
     TOPIC_PROMPT: str
-    SCRIPT_PROMPT: str
-    PRE_SCRIPT: str
+    OPENING_PROMPT: str
+    PART1_PROMPT: str
+    PART2_PROMPT: str
+    PART3_PROMPT: str
+    CORNER_PROMPT: str
+    ENDING_PROMPT: str
+
+    # SCRIPT_PROMPT: str
+    # PRE_SCRIPT: str
 
     script_manager: ScriptManager
     audio_manager: AudioManager
@@ -402,8 +586,12 @@ class Radiograph(StateGraph[RadioState]):
         level: str,
         REF_TEXT: str,
         TOPIC_PROMPT: str,
-        SCRIPT_PROMPT: str,
-        PRE_SCRIPT: str,
+        OPENING_PROMPT: str,
+        PART1_PROMPT: str,
+        PART2_PROMPT: str,
+        PART3_PROMPT: str,
+        CORNER_PROMPT: str,
+        ENDING_PROMPT: str,
         is_debug: bool = False,
     ):
         super().__init__(
@@ -425,17 +613,44 @@ class Radiograph(StateGraph[RadioState]):
         self.level = level
 
         self.TOPIC_PROMPT = TOPIC_PROMPT
-        self.SCRIPT_PROMPT = SCRIPT_PROMPT
-        self.PRE_SCRIPT = PRE_SCRIPT
+        self.OPENING_PROMPT = OPENING_PROMPT
+        self.PART1_PROMPT = PART1_PROMPT
+        self.PART2_PROMPT = PART2_PROMPT
+        self.PART3_PROMPT = PART3_PROMPT
+        self.CORNER_PROMPT = CORNER_PROMPT
+        self.ENDING_PROMPT = ENDING_PROMPT
 
+        # self.SCRIPT_PROMPT = SCRIPT_PROMPT
+        # self.PRE_SCRIPT = PRE_SCRIPT
+
+        # self.add_node("topic", self.topic_node)
+        # self.add_node("script", self.script_node)
+        # self.add_node("tts", self.tts_node)
+
+        # self.set_entry_point("topic")
+
+        # self.add_edge("topic", "script")
+        # self.add_edge("script", "tts")
         self.add_node("topic", self.topic_node)
-        self.add_node("script", self.script_node)
+        self.add_node("opening", self.opening_node)
+        self.add_node("part1", self.part1_node)
+        self.add_node("part2", self.part2_node)
+        self.add_node("part3", self.part3_node)
+        self.add_node("corner", self.corner_node)
+        self.add_node("ending", self.ending_node)
+        self.add_node("merge", self.merge_node)
         self.add_node("tts", self.tts_node)
 
         self.set_entry_point("topic")
 
-        self.add_edge("topic", "script")
-        self.add_edge("script", "tts")
+        self.add_edge("topic", "opening")
+        self.add_edge("opening", "part1")
+        self.add_edge("part1", "part2")
+        self.add_edge("part2", "part3")
+        self.add_edge("part3", "corner")
+        self.add_edge("corner", "ending")
+        self.add_edge("ending", "merge")
+        self.add_edge("merge", "tts")
 
     def debug(self, message: str):
         if self.is_debug:
@@ -491,9 +706,9 @@ class Radiograph(StateGraph[RadioState]):
 
         self.debug(f"previous_topics: {previous_topics}")
 
-        prompt = self.TOPIC_PROMPT.replace("{LEVEL}", self.level).replace(
-            "{PREVIOUS_TOPICS}",
-            json.dumps(
+        prompt = self.TOPIC_PROMPT.format(
+            LEVEL=self.level,
+            PREVIOUS_TOPICS=json.dumps(
                 [topic["topic"] for topic in previous_topics], ensure_ascii=False
             ),
         )
@@ -534,33 +749,176 @@ class Radiograph(StateGraph[RadioState]):
         except json.JSONDecodeError:
             return False
 
-    def script_node(self, state: RadioState):
-        self.debug(f"topic: {state['topic']}")
+    # def script_node(self, state: RadioState):
+    #     self.debug(f"topic: {state['topic']}")
 
-        prompt = self.SCRIPT_PROMPT.replace("{LEVEL}", self.level).replace(
-            "{TOPIC}", state["topic"]
+    #     prompt = self.SCRIPT_PROMPT.replace("{LEVEL}", self.level).replace(
+    #         "{TOPIC}", state["topic"]
+    #     )
+
+    #     self.debug(f"script_node prompt: {prompt}")
+
+    #     script = self.run_prompt(
+    #         prompt,
+    #         validation=self.script_validation,
+    #     )
+
+    #     script = json.loads(script)
+    #     pre_script = self.PRE_SCRIPT.replace("{LEVEL}", self.level).strip().split("\n")
+    #     pre_script = [{"part": "opening", "text": line} for line in pre_script]
+
+    #     script = pre_script + script
+
+    #     now = state["now"]
+
+    #     self.script_manager.save_script(script, state["topic"], now)
+
+    #     state["script"] = script
+
+    #     self.debug(f"generated script: {script}")
+
+    #     return state
+    def opening_node(self, state):
+        prompt = self.OPENING_PROMPT.format(
+            LEVEL=self.level,
+            TOPIC=state["topic"],
         )
 
-        self.debug(f"script_node prompt: {prompt}")
-
-        script = self.run_prompt(
+        result = self.run_prompt(
             prompt,
             validation=self.script_validation,
         )
 
-        script = json.loads(script)
+        state["opening"] = json.loads(result)
+        self.debug(f"generated opening: {state['opening']}")
+
+        return state
+
+    def part1_node(self, state):
+        prompt = self.PART1_PROMPT.format(
+            LEVEL=self.level,
+            TOPIC=state["topic"],
+        )
+
+        result = self.run_prompt(
+            prompt,
+            validation=self.script_validation,
+        )
+
+        state["part1"] = json.loads(result)
+        self.debug(f"generated part1: {state['part1']}")
+
+        return state
+
+    def part2_node(self, state):
+        previous = state["opening"] + state["part1"]
+
+        prompt = self.PART2_PROMPT.format(
+            LEVEL=self.level,
+            TOPIC=state["topic"],
+            PREVIOUS=json.dumps(
+                previous,
+                ensure_ascii=False,
+            ),
+        )
+
+        result = self.run_prompt(
+            prompt,
+            validation=self.script_validation,
+        )
+
+        state["part2"] = json.loads(result)
+        self.debug(f"generated part2: {state['part2']}")
+
+        return state
+
+    def part3_node(self, state):
+        previous = state["opening"] + state["part1"] + state["part2"]
+
+        prompt = self.PART3_PROMPT.format(
+            LEVEL=self.level,
+            TOPIC=state["topic"],
+            PREVIOUS=json.dumps(
+                previous,
+                ensure_ascii=False,
+            ),
+        )
+
+        state["part3"] = json.loads(
+            self.run_prompt(
+                prompt,
+                validation=self.script_validation,
+            )
+        )
+        self.debug(f"generated part3: {state['part3']}")
+        return state
+
+    def corner_node(self, state):
+        prompt = self.CORNER_PROMPT.format(
+            LEVEL=self.level,
+            TOPIC=state["topic"],
+        )
+
+        state["corner"] = json.loads(
+            self.run_prompt(
+                prompt,
+                validation=self.script_validation,
+            )
+        )
+        self.debug(f"generated corner: {state['corner']}")
+
+        return state
+
+    def ending_node(self, state):
+        previous = state["opening"] + state["part1"] + state["part2"] + state["part3"]
+
+        prompt = self.ENDING_PROMPT.format(
+            LEVEL=self.level,
+            TOPIC=state["topic"],
+            PREVIOUS=json.dumps(
+                previous,
+                ensure_ascii=False,
+            ),
+        )
+
+        state["ending"] = json.loads(
+            self.run_prompt(
+                prompt,
+                validation=self.script_validation,
+            )
+        )
+        self.debug(f"generated ending: {state['ending']}")
+
+        return state
+
+    def merge_node(self, state):
         pre_script = self.PRE_SCRIPT.replace("{LEVEL}", self.level).strip().split("\n")
-        pre_script = [{"part": "opening", "text": line} for line in pre_script]
 
-        script = pre_script + script
+        pre_script = [
+            {
+                "part": "opening",
+                "text": line,
+            }
+            for line in pre_script
+        ]
 
-        now = state["now"]
-
-        self.script_manager.save_script(script, state["topic"], now)
+        script = (
+            pre_script
+            + state["opening"]
+            + state["part1"]
+            + state["part2"]
+            + state["part3"]
+            + state["corner"]
+            + state["ending"]
+        )
 
         state["script"] = script
 
-        self.debug(f"generated script: {script}")
+        self.script_manager.save_script(
+            script,
+            state["topic"],
+            state["now"],
+        )
 
         return state
 
@@ -612,8 +970,12 @@ graph = Radiograph(
     level="N4",
     REF_TEXT=REF_TEXT,
     TOPIC_PROMPT=TOPIC_PROMPT,
-    SCRIPT_PROMPT=SCRIPT_PROMPT,
-    PRE_SCRIPT=PRE_SCRIPT,
+    OPENING_PROMPT=OPENING_PROMPT,
+    PART1_PROMPT=PART1_PROMPT,
+    PART2_PROMPT=PART2_PROMPT,
+    PART3_PROMPT=PART3_PROMPT,
+    CORNER_PROMPT=CORNER_PROMPT,
+    ENDING_PROMPT=ENDING_PROMPT,
     is_debug=True,
 )
 app = graph.compile()
@@ -629,4 +991,3 @@ result = app.invoke(RadioState())
 
 
 print(result)
-
