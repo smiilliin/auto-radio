@@ -319,24 +319,48 @@ PART1_PROMPT = COMMON_PROMPT + """
 
 현재 방송 상태:
 
-- 인사: 완료
-- 오프닝: 완료
+- 인사와 오프닝이 끝났다.
 - 지금은 첫 번째 이야기 시간이다.
 
 규칙:
 
-- 정확히 6문장.
-- part는 part1.
-- 자기소개 금지.
-- 프로그램명 언급 금지.
-- 현실적인 이야기만 한다.
-- 마지막 문장은 질문.
+- JSON 배열을 출력한다.
+- 정확히 6개의 객체를 생성한다.
+- 모든 객체의 part는 "part1"이다.
+- 마지막 text는 질문으로 끝난다.
+
+주의:
+
+- "part1"을 절대로 변경하지 않는다.
+- 일본어만 사용한다.
+- 자기소개를 하지 않는다.
+- 프로그램명을 말하지 않는다.
 
 좋은 예:
 
-- 朝はコーヒーを飲みます。
-- パンを食べるのが好きです。
-- みなさんは何を食べますか？
+[
+    {
+        "part":"part1",
+        "text":"今日はパンを食べました。"
+    },
+    {
+        "part":"part1",
+        "text":"コーヒーを飲むのが好きです。"
+    },
+    {
+        "part":"part1",
+        "text":"みなさんは何が好きですか？"
+    }
+]
+
+평범한 일상을 이야기한다.
+
+- 朝はパンを食べます。
+- 散歩をします。
+- コーヒーを飲みます。
+- 本を読みます。
+
+이런 식으로 편하게 이야기한다.
 """
 
 PART2_PROMPT = COMMON_PROMPT + """
@@ -352,6 +376,8 @@ PART2_PROMPT = COMMON_PROMPT + """
 
 - 첫 번째 이야기가 끝났다.
 - 지금은 두 번째 이야기 시간이다.
+- 이전 내용과 같은 분위기를 유지한다.
+- 이전 내용을 반복하지 않는다.
 
 규칙:
 
@@ -395,6 +421,9 @@ CORNER_PROMPT = COMMON_PROMPT + """
 
 주제:
 {TOPIC}
+
+이전 방송 내용:
+{PREVIOUS}
 
 현재 방송 상태:
 
@@ -940,9 +969,15 @@ class Radiograph(StateGraph[RadioState]):
         return state
 
     def corner_node(self, state):
+        previous = state["opening"] + state["part1"] + state["part2"] + state["part3"]
+
         prompt = self.CORNER_PROMPT.format(
             LEVEL=self.level,
             TOPIC=state["topic"],
+            PREVIOUS=json.dumps(
+                previous,
+                ensure_ascii=False,
+            ),
         )
 
         state["corner"] = json.loads(
