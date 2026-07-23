@@ -43,17 +43,16 @@ try:
             f"root@{IP}",
             f"""
                 cd /workspace
-                if [ ! -d auto-radio ]; then
-                    git clone https://github.com/smiilliin/auto-radio.git
-                fi
-                cd auto-radio
-                git pull
-                cd /workspace/
-                if [ ! -d smiilliin.github.io ]; then
-                    git clone --depth 1 'https://x-access-token:{GITHUB_TOKEN}@github.com/smiilliin/smiilliin.github.io.git'
-                fi
+                
+                rm -rf auto-radio
+                git clone --depth 1 https://github.com/smiilliin/auto-radio.git
+
+                cd /workspace
+
+                rm -rf smiilliin.github.io
+                git clone --depth 1 'https://x-access-token:{GITHUB_TOKEN}@github.com/smiilliin/smiilliin.github.io.git'
+                
                 cd smiilliin.github.io
-                git pull
 
                 if [ ! -d auto-radio/jlpt_n4 ]; then
                     mkdir -p auto-radio/jlpt_n4
