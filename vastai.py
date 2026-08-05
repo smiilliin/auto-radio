@@ -44,9 +44,7 @@ result = subprocess.check_output(
         "instance",
         str(offer_id),
         "--image",
-        "vastai/pytorch:@vastai-automatic-tag",
-        "--onstart-cmd",
-        "'entrypoint.sh'",
+        "ghcr.io/smiilliin/auto-radio:latest",
         "--disk",
         "20",
         "--ssh",
@@ -121,81 +119,136 @@ try:
         time.sleep(10)
 
     subprocess.run(
-        ssh_command
-        + [
-            f"""
-                cd /workspace
-                if [ ! -d auto-radio ]; then
-                    git clone https://github.com/smiilliin/auto-radio.git
-                fi
-                cd auto-radio
-                git pull
-                cd /workspace/
-                if [ ! -d smiilliin.github.io ]; then
-                    git clone --depth 1 'https://x-access-token:{GITHUB_TOKEN}@github.com/smiilliin/smiilliin.github.io.git'
-                fi
-                cd smiilliin.github.io
-                git pull
-
-                if [ ! -d auto-radio/jlpt_n4 ]; then
-                    mkdir -p auto-radio/jlpt_n4
-                fi
-
-                cp -r /workspace/smiilliin.github.io/auto-radio/jlpt_n4 /workspace/auto-radio/
-            """,
-        ],
-        check=True,
-    )
-    subprocess.run(
         scp_command
         + [
             ".env",
-            f"{HOST}:/workspace/auto-radio/.env",
+            f"{HOST}:/app/.env",
         ],
         check=True,
     )
 
     subprocess.run(
-        ssh_command
-        + [
-            f"""
-                cd /workspace/auto-radio
-                git pull
+        ssh_command + [f"""
+            set -e
 
-                if [ ! -d .venv ]; then
-                    uv python install 3.13
-                    uv venv --python 3.13
-                fi
+            cd /workspace
 
-                uv sync
-                source .venv/bin/activate
-                
-                python -u main.py
-            """,
-        ],
-        check=True,
-    )
-    subprocess.run(
-        ssh_command
-        + [
-            f"""
-                cd /workspace/smiilliin.github.io
-                
-                git remote set-url origin 'https://x-access-token:{GITHUB_TOKEN}@github.com/smiilliin/smiilliin.github.io.git'
+            # github pages clone
+            if [ ! -d smiilliin.github.io ]; then
+                git clone --depth 1 'https://x-access-token:{GITHUB_TOKEN}@github.com/smiilliin/smiilliin.github.io.git'
+            fi
 
-                git pull                
+            cd smiilliin.github.io
+            git remote set-url origin 'https://x-access-token:{GITHUB_TOKEN}@github.com/smiilliin/smiilliin.github.io.git'
+            git pull
 
-                git config user.name "github-actions[bot]"
-                git config user.email "github-actions[bot]@users.noreply.github.com"
+            # 이전 방송 데이터 복원
+            if [ -d auto-radio/jlpt_n4 ]; then
+                rm -rf /app/jlpt_n4
+                cp -r auto-radio/jlpt_n4 /app/
+            fi
 
-                cp -r /workspace/auto-radio/jlpt_n4 /workspace/smiilliin.github.io/auto-radio/
-                git add auto-radio
+            cd /app
+            python -u main.py
+
+            # 결과 복사
+            cd /workspace/smiilliin.github.io
+
+            rm -rf auto-radio/jlpt_n4
+            mkdir -p auto-radio
+
+            cp -r /app/jlpt_n4 auto-radio/
+
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+
+            git add auto-radio
+
+            if git diff --cached --quiet; then
+                echo "No changes"
+            else
                 git commit -m "chore(auto-radio): update radio outputs"
                 git push origin main
-            """,
-        ],
+            fi
+        """],
         check=True,
     )
+    # subprocess.run(
+    #     ssh_command
+    #     + [
+    #         f"""
+    #             cd /workspace
+    #             if [ ! -d auto-radio ]; then
+    #                 git clone https://github.com/smiilliin/auto-radio.git
+    #             fi
+    #             cd auto-radio
+    #             git pull
+    #             cd /workspace/
+    #             if [ ! -d smiilliin.github.io ]; then
+    #                 git clone --depth 1 'https://x-access-token:{GITHUB_TOKEN}@github.com/smiilliin/smiilliin.github.io.git'
+    #             fi
+    #             cd smiilliin.github.io
+    #             git pull
+
+    #             if [ ! -d auto-radio/jlpt_n4 ]; then
+    #                 mkdir -p auto-radio/jlpt_n4
+    #             fi
+
+    #             cp -r /workspace/smiilliin.github.io/auto-radio/jlpt_n4 /workspace/auto-radio/
+    #         """,
+    #     ],
+    #     check=True,
+    # )
+    # subprocess.run(
+    #     scp_command
+    #     + [
+    #         ".env",
+    #         f"{HOST}:/workspace/auto-radio/.env",
+    #     ],
+    #     check=True,
+    # )
+
+    # subprocess.run(
+    #     ssh_command
+    #     + [
+    #         f"""
+    #             cd /workspace/auto-radio
+    #             git pull
+
+    #             if [ ! -d .venv ]; then
+    #                 uv python install 3.13
+    #                 uv venv --python 3.13
+    #             fi
+
+    #             uv sync
+    #             source .venv/bin/activate
+
+    #             python -u main.py
+    #         """,
+    #     ],
+    #     check=True,
+    # )
+    # subprocess.run(
+    #     ssh_command
+    #     + [
+    #         f"""
+    #             cd /workspace/smiilliin.github.io
+
+    #             git remote set-url origin 'https://x-access-token:{GITHUB_TOKEN}@github.com/smiilliin/smiilliin.github.io.git'
+
+    #             git pull
+
+    #             git config user.name "github-actions[bot]"
+    #             git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    #             cp -r /workspace/auto-radio/jlpt_n4 /workspace/smiilliin.github.io/auto-radio/
+    #             git add auto-radio
+    #             git commit -m "chore(auto-radio): update radio outputs"
+    #             git push origin main
+    #         """,
+    #     ],
+    #     check=True,
+    # )
 except Exception as e:
     print(f"ERROR: {e}")
     raise
