@@ -5,6 +5,7 @@ concurrency:
   cancel-in-progress: true
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "0 15 * * *"
 
@@ -30,7 +31,7 @@ jobs:
       - name: Create .env
         run: |
           cat << EOF > .env
-          GH_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN=${{ secrets.GH_TOKEN }}
           VAST_API_KEY=${{ secrets.VAST_API_KEY }}
           OPENROUTER_KEY=${{ secrets.OPENROUTER_KEY }}
           HF_TOKEN=${{ secrets.HF_TOKEN }}
