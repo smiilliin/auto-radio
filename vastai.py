@@ -62,10 +62,10 @@ instance = json.loads(result)
 instance_id = instance["new_contract"]
 
 try:
-    subprocess.run(["vastai", "start", "instance", str(INSTANCE_ID)], check=True)
+    subprocess.run(["vastai", "start", "instance", str(instance_id)], check=True)
     while True:
         result = subprocess.check_output(
-            ["vastai", "show", "instance", str(INSTANCE_ID), "--raw"]
+            ["vastai", "show", "instance", str(instance_id), "--raw"]
         )
 
         result = json.loads(result)
@@ -192,4 +192,4 @@ except Exception as e:
     print(f"ERROR: {e}")
     raise
 finally:
-    subprocess.run(["vastai", "destroy", "instance", str(INSTANCE_ID)])
+    subprocess.run(["vastai", "destroy", "instance", str(instance_id)], check=True)
