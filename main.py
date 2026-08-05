@@ -896,7 +896,7 @@ class Radiograph(StateGraph[RadioState]):
 
     def script_validation(self, message: str) -> bool:
         JP_PATTERN = re.compile(
-            r"^[ぁ-んァ-ン一-龯ー、。！？「」『』（）・…〜\s0-9A-Za-z]+$"
+            r"^[\u3040-\u30FF\u3400-\u9FFF\u3005\u30FC\s。、！？「」『』（）・…〜0-9]+$"
         )
 
         if not JP_PATTERN.fullmatch(message):
