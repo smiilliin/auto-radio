@@ -105,6 +105,8 @@ try:
 
             print(f"Instance is running. SSH command: {ssh_command}")
 
+            time.sleep(10)
+
             break
 
         time.sleep(10)
