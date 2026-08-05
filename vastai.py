@@ -43,7 +43,7 @@ result = subprocess.check_output(
         "instance",
         str(offer_id),
         "--template_hash",
-        "e7128df5ff57a1211191b2414e91468d",
+        os.getenv("TEMPLATE_HASH"),
         # "--image",
         # "ghcr.io/smiilliin/auto-radio:latest",
         "--disk",
