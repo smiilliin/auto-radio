@@ -8,9 +8,6 @@ from urllib.parse import urlparse
 dotenv.load_dotenv()
 
 GITHUB_TOKEN = os.getenv("GH_TOKEN")
-INSTANCE_ID = os.getenv("INSTANCE_ID")
-PORT = os.getenv("PORT")
-IP = os.getenv("IP")
 
 query = " ".join(
     [
@@ -142,7 +139,7 @@ try:
         scp_command
         + [
             ".env",
-            f"root@{IP}:/workspace/auto-radio/.env",
+            f"{HOST}:/workspace/auto-radio/.env",
         ],
         check=True,
     )
