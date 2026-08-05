@@ -31,6 +31,7 @@ jobs:
       - name: Run Auto Radio
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          VAST_API_KEY: ${{ secrets.VAST_API_KEY }}
           TEMPLATE_HASH: ${{ secrets.TEMPLATE_HASH }}
         run: |
           source .venv/bin/activate
