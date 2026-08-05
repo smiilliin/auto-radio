@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM vastai/pytorch:@vastai-automatic-tag
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -11,10 +11,10 @@ RUN pip install --no-cache-dir uv
 WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen
+RUN uv sync --frozen --no-dev
 
 COPY . .
 
 ENV PATH="/app/.venv/bin:$PATH"
 
-CMD ["bash"]
+CMD ["sleep", "infinity"]
