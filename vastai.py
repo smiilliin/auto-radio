@@ -7,6 +7,7 @@ import json
 dotenv.load_dotenv()
 
 GITHUB_TOKEN = os.getenv("GH_TOKEN")
+TEMPLATE_HASH = os.getenv("TEMPLATE_HASH")
 
 query = " ".join(
     [
@@ -43,7 +44,7 @@ result = subprocess.check_output(
         "instance",
         str(offer_id),
         "--template_hash",
-        os.getenv("TEMPLATE_HASH"),
+        TEMPLATE_HASH,
         # "--image",
         # "ghcr.io/smiilliin/auto-radio:latest",
         "--disk",

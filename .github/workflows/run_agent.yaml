@@ -28,23 +28,10 @@ jobs:
           uv pip install python-dotenv
           pip install vastai
 
-      - name: Create .env
-        run: |
-          cat << EOF > .env
-          GH_TOKEN=${{ secrets.GH_TOKEN }}
-          VAST_API_KEY=${{ secrets.VAST_API_KEY }}
-          OPENROUTER_KEY=${{ secrets.OPENROUTER_KEY }}
-          HF_TOKEN=${{ secrets.HF_TOKEN }}
-          EOF
-      - name: Setup SSH
-        run: |
-            mkdir -p ~/.ssh
-            echo "${{ secrets.VAST_SSH_KEY }}" > ~/.ssh/id_ed25519
-            chmod 600 ~/.ssh/id_ed25519
-
       - name: Run Auto Radio
         env:
-          VAST_API_KEY: ${{ secrets.VAST_API_KEY }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          TEMPLATE_HASH: ${{ secrets.TEMPLATE_HASH }}
         run: |
           source .venv/bin/activate
           python -u vastai.py
