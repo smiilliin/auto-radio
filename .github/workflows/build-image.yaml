@@ -3,13 +3,13 @@ name: Build Docker Image
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - Dockerfile
       - pyproject.toml
       - uv.lock
-      - main.py
       - "**/*.py"
+      - ".github/workflows/build-image.yaml"
 
   workflow_dispatch:
 
