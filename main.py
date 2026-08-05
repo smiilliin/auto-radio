@@ -520,6 +520,8 @@ class ScriptManager:
             json.dump(self.topics, f, indent=2, ensure_ascii=False)
 
     def new_topic(self, topic: str, now: str):
+        self.topics = self.load_topics()
+
         self.topics.append(
             {
                 "time": now,
@@ -1098,27 +1100,6 @@ class Radiograph(StateGraph[RadioState]):
 
 # In[ ]:
 
-
-graph = Radiograph(
-    client=client,
-    base_path=Path("./jlpt_n4"),
-    level="N4",
-    REF_TEXT=REF_TEXT,
-    TOPIC_PROMPT=TOPIC_PROMPT,
-    OPENING_PROMPT=OPENING_PROMPT,
-    PART1_PROMPT=PART1_PROMPT,
-    PART2_PROMPT=PART2_PROMPT,
-    PART3_PROMPT=PART3_PROMPT,
-    CORNER_PROMPT=CORNER_PROMPT,
-    ENDING_PROMPT=ENDING_PROMPT,
-    PRE_SCRIPT=PRE_SCRIPT,
-    is_debug=True,
-)
-app = graph.compile()
-
-
-# In[ ]:
-
 import os
 import shutil
 import subprocess
@@ -1155,6 +1136,23 @@ if os.path.exists(src):
 # 여기서 main.py의 방송 생성 코드 실행
 # ==========================
 
+
+graph = Radiograph(
+    client=client,
+    base_path=Path("./jlpt_n4"),
+    level="N4",
+    REF_TEXT=REF_TEXT,
+    TOPIC_PROMPT=TOPIC_PROMPT,
+    OPENING_PROMPT=OPENING_PROMPT,
+    PART1_PROMPT=PART1_PROMPT,
+    PART2_PROMPT=PART2_PROMPT,
+    PART3_PROMPT=PART3_PROMPT,
+    CORNER_PROMPT=CORNER_PROMPT,
+    ENDING_PROMPT=ENDING_PROMPT,
+    PRE_SCRIPT=PRE_SCRIPT,
+    is_debug=True,
+)
+app = graph.compile()
 
 result = app.invoke(RadioState())
 
