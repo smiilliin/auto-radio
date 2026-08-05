@@ -267,7 +267,7 @@ OPENING_PROMPT = COMMON_PROMPT + """
 
 첫 문장은 반드시
 
-今日は、{TOPIC}についてお話しします。
+今日は、{TOPIC}お話しします。
 
 예시
 
