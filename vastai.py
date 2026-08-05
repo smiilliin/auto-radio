@@ -103,11 +103,16 @@ try:
                 str(PORT),
             ]
 
-            print(f"Instance is running. SSH command: {ssh_command}")
-
-            time.sleep(10)
-
-            break
+            try:
+                subprocess.run(
+                    ssh_command + ["echo hello"],
+                    check=True,
+                )
+            except:
+                pass
+            else:
+                print(f"Instance is running. SSH command: {ssh_command}")
+                break
 
         time.sleep(10)
 
