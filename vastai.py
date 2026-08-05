@@ -170,7 +170,7 @@ try:
                 uv sync
                 source .venv/bin/activate
                 
-                python main.py
+                python -u main.py
             """,
         ],
         check=True,
