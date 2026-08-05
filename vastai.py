@@ -3,14 +3,63 @@ import os
 import time
 import subprocess
 import json
+from urllib.parse import urlparse
 
 dotenv.load_dotenv()
 
 GITHUB_TOKEN = os.getenv("GH_TOKEN")
 INSTANCE_ID = os.getenv("INSTANCE_ID")
-# PORT = os.getenv("PORT")
-# IP = os.getenv("IP")
+PORT = os.getenv("PORT")
+IP = os.getenv("IP")
 
+query = " ".join(
+    [
+        "reliability>0.99",
+        "verified=True",
+        "dlperf>12",
+        "inet_up>500",
+        "cuda_vers>=13",
+        "reliability>0.995",
+        "duration>7",
+        "disk_bw>1500",
+    ]
+)
+
+result = subprocess.check_output(
+    [
+        "vastai",
+        "search",
+        "offers",
+        query,
+        "--raw",
+    ]
+)
+
+offers = json.loads(result)
+
+offer = min(offers, key=lambda x: x["dph_total"])
+offer_id = offer["id"]
+
+result = subprocess.check_output(
+    [
+        "vastai",
+        "create",
+        "instance",
+        str(offer_id),
+        "--image",
+        "vastai/pytorch:@vastai-automatic-tag",
+        "--onstart-cmd",
+        "'entrypoint.sh'",
+        "--disk",
+        "20",
+        "--ssh",
+        "--direct",
+        "--raw",
+    ]
+)
+
+instance = json.loads(result)
+instance_id = instance["new_contract"]
 
 try:
     subprocess.run(["vastai", "start", "instance", str(INSTANCE_ID)], check=True)
@@ -22,25 +71,50 @@ try:
         result = json.loads(result)
 
         if result["actual_status"] == "running":
-            IP = result["public_ipaddr"]
-            PORT = result["ports"]["22/tcp"][0]["HostPort"]
+            url = subprocess.check_output(
+                ["vastai", "ssh-url", str(instance_id)],
+                text=True,
+            ).strip()
+
+            parsed = urlparse(url)
+
+            HOST = f"{parsed.username}@{parsed.hostname}"
+            PORT = parsed.port
+
+            ssh_command = [
+                "ssh",
+                "-i",
+                os.path.expanduser("~/.ssh/id_ed25519"),
+                "-o",
+                "StrictHostKeyChecking=no",
+                "-o",
+                "UserKnownHostsFile=/dev/null",
+                "-p",
+                str(PORT),
+                HOST,
+            ]
+
+            scp_command = [
+                "scp",
+                "-i",
+                os.path.expanduser("~/.ssh/id_ed25519"),
+                "-o",
+                "StrictHostKeyChecking=no",
+                "-o",
+                "UserKnownHostsFile=/dev/null",
+                "-P",
+                str(PORT),
+            ]
+
+            print(f"Instance is running. SSH command: {ssh_command}")
 
             break
 
         time.sleep(10)
 
     subprocess.run(
-        [
-            "ssh",
-            "-i",
-            os.path.expanduser("~/.ssh/id_ed25519"),
-            "-o",
-            "StrictHostKeyChecking=no",
-            "-o",
-            "UserKnownHostsFile=/dev/null",
-            "-p",
-            str(PORT),
-            f"root@{IP}",
+        ssh_command
+        + [
             f"""
                 cd /workspace
                 if [ ! -d auto-radio ]; then
@@ -65,16 +139,8 @@ try:
         check=True,
     )
     subprocess.run(
-        [
-            "scp",
-            "-i",
-            os.path.expanduser("~/.ssh/id_ed25519"),
-            "-o",
-            "StrictHostKeyChecking=no",
-            "-o",
-            "UserKnownHostsFile=/dev/null",
-            "-P",
-            str(PORT),
+        scp_command
+        + [
             ".env",
             f"root@{IP}:/workspace/auto-radio/.env",
         ],
@@ -82,17 +148,8 @@ try:
     )
 
     subprocess.run(
-        [
-            "ssh",
-            "-i",
-            os.path.expanduser("~/.ssh/id_ed25519"),
-            "-o",
-            "StrictHostKeyChecking=no",
-            "-o",
-            "UserKnownHostsFile=/dev/null",
-            "-p",
-            str(PORT),
-            f"root@{IP}",
+        ssh_command
+        + [
             f"""
                 cd /workspace/auto-radio
                 git pull
@@ -111,17 +168,8 @@ try:
         check=True,
     )
     subprocess.run(
-        [
-            "ssh",
-            "-i",
-            os.path.expanduser("~/.ssh/id_ed25519"),
-            "-o",
-            "StrictHostKeyChecking=no",
-            "-o",
-            "UserKnownHostsFile=/dev/null",
-            "-p",
-            str(PORT),
-            f"root@{IP}",
+        ssh_command
+        + [
             f"""
                 cd /workspace/smiilliin.github.io
                 
@@ -144,4 +192,4 @@ except Exception as e:
     print(f"ERROR: {e}")
     raise
 finally:
-    subprocess.run(["vastai", "stop", "instance", str(INSTANCE_ID)])
+    subprocess.run(["vastai", "destroy", "instance", str(INSTANCE_ID)])
