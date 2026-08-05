@@ -11,4 +11,4 @@ COPY . .
 
 ENV PATH="/app/.venv/bin:$PATH"
 
-CMD ["bash"]
+ENTRYPOINT ["python", "-u", "/app/main.py"]
