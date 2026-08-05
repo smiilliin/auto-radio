@@ -2,18 +2,19 @@ FROM python:3.13-slim
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        ffmpeg \
-        git && \
+        git \
+        ffmpeg && \
     rm -rf /var/lib/apt/lists/*
-    
+
 RUN pip install --no-cache-dir uv
 
 WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
-
 RUN uv sync --frozen
 
 COPY . .
 
-CMD ["python", "main.py"]
+ENV PATH="/app/.venv/bin:$PATH"
+
+CMD ["bash"]
