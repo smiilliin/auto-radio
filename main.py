@@ -1117,13 +1117,97 @@ graph = Radiograph(
 app = graph.compile()
 
 
-# In[267]:
+# In[ ]:
+
+import os
+import shutil
+import subprocess
+
+GH_TOKEN = os.getenv("GH_TOKEN")
+
+# GitHub Pages 저장소 clone
+repo_dir = "smiilliin.github.io"
+
+if os.path.exists(repo_dir):
+    shutil.rmtree(repo_dir)
+
+subprocess.run(
+    [
+        "git",
+        "clone",
+        "--depth",
+        "1",
+        f"https://x-access-token:{GH_TOKEN}@github.com/smiilliin/smiilliin.github.io.git",
+    ],
+    check=True,
+)
+
+# 이전 방송 데이터 복원
+src = os.path.join(repo_dir, "auto-radio", "jlpt_n4")
+dst = "jlpt_n4"
+
+if os.path.exists(src):
+    if os.path.exists(dst):
+        shutil.rmtree(dst)
+    shutil.copytree(src, dst)
+
+# ==========================
+# 여기서 main.py의 방송 생성 코드 실행
+# ==========================
 
 
 result = app.invoke(RadioState())
 
+# ==========================
+# 결과 업로드
+# ==========================
 
-# In[ ]:
+target = os.path.join(repo_dir, "auto-radio", "jlpt_n4")
 
+if os.path.exists(target):
+    shutil.rmtree(target)
 
-print(result)
+shutil.copytree(dst, target)
+
+subprocess.run(
+    ["git", "-C", repo_dir, "config", "user.name", "github-actions[bot]"],
+    check=True,
+)
+
+subprocess.run(
+    [
+        "git",
+        "-C",
+        repo_dir,
+        "config",
+        "user.email",
+        "github-actions[bot]@users.noreply.github.com",
+    ],
+    check=True,
+)
+
+subprocess.run(["git", "-C", repo_dir, "add", "auto-radio"], check=True)
+
+diff = subprocess.run(["git", "-C", repo_dir, "diff", "--cached", "--quiet"])
+
+if diff.returncode == 0:
+    print("No changes to commit.")
+else:
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            repo_dir,
+            "commit",
+            "-m",
+            "chore(auto-radio): update radio outputs",
+        ],
+        check=True,
+    )
+
+    subprocess.run(
+        ["git", "-C", repo_dir, "push", "origin", "main"],
+        check=True,
+    )
+
+    print("Push completed!")

@@ -11,4 +11,4 @@ COPY . .
 
 ENV PATH="/app/.venv/bin:$PATH"
 
-CMD ["sleep", "infinity"]
+CMD ["python", "-u", "main.py"]
