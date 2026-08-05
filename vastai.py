@@ -196,4 +196,9 @@ except Exception as e:
     print(f"ERROR: {e}")
     raise
 finally:
-    subprocess.run(["vastai", "destroy", "instance", str(instance_id)], check=True)
+    subprocess.run(
+        ["vastai", "destroy", "instance", str(instance_id)],
+        input="y\n",
+        text=True,
+        check=True,
+    )
