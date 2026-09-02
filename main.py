@@ -60,438 +60,6 @@ client = OpenAI(
 # In[ ]:
 
 
-TOPIC_PROMPT = """
-일본어 라디오에서 사용할 주제를 1개 생성하라.
-
-[조건]
-
-- JLPT {LEVEL} 수준.
-- 일상적이고 공감 가능한 주제.
-- 10~15분 분량의 라디오로 확장 가능해야 한다.
-- 설명하기 쉬운 일본어 표현이 최소 2개 이상 떠오르는 주제여야 한다.
-- 주제는 반드시 끝에 について가 붙으며, 자연스러운 형태여야 한다.
-
-좋은 예:
-- コンビニでよく買うものについて
-- 雨の日の過ごし方について
-- 好きなおにぎりについて
-- 朝のルーティンについて
-- カフェで勉強する話について
-
-나쁜 예:
-- 宇宙の起源
-- 実存主義
-- 量子力学
-- グローバル経済
-- 一番好きな季節
-
-[출력 규칙]
-
-- 주제 한 줄만 출력.
-- 따옴표 사용 금지.
-- 번호 금지.
-- 20자 이내.
-
-[중복 방지]
-
-{PREVIOUS_TOPICS}
-"""
-
-# SCRIPT_PROMPT = """
-# 주제:
-# {TOPIC}
-
-# 이 주제를 기반으로 JLPT {LEVEL} 수준 청취자를 위한 일본어 라디오 스크립트를 작성하라.
-
-# 다음 문장은 이미 방송에서 읽혔다.
-# 절대 다시 생성하지 마라.
-
-# - みなさん、こんにちは！
-# - 「ゆるっと電波 {LEVEL}」へようこそ！
-# - 私はハヤトです。
-
-# 당신은 이제 방송을 이어서 진행한다.
-
-# 프로그램 정보:
-# - 프로그램명: ゆるっと電波 {LEVEL}
-# - 진행자: ハヤト
-
-# 언어 수준:
-# - JLPT {LEVEL} 수준의 어휘와 문법을 우선 사용
-# - 불가피하게 어려운 표현이 포함될 경우 최대 5개 이하로 제한
-# - 어려운 단어는 가능한 쉬운 표현으로 바꿈
-
-# 스타일:
-# - 캐주얼하고 부드러운 말투 사용 (친근한 라디오 진행자 느낌)
-# - 청자에게 말을 거는 표현 포함 (예: みなさん、どうですか？)
-# - 딱딱한 설명체 금지
-
-# 문장 구조:
-# - 문장은 짧고 유기적으로 작성
-# - 문장을 과도하게 길게 작성하지 않음(한 문장 35자 이내)
-# - 자연스러운 호흡을 위해 「、」「。」 적절히 사용
-
-# 청해 최적화:
-# - 발음하기 어려운 한자, 언어 수준에 맞지 않은 한자, 외래어, 숫자는 필요할 때만 풀어서 표현
-# - 의미 단위로 끊어 읽기 쉽게 구성
-
-# 재미 요소:
-# - 가벼운 감정 표현 또는 공감 요소 포함
-# - 청취자가 상황을 상상할 수 있도록 묘사 추가
-
-# 규칙:
-# - JLPT {LEVEL} 수준의 일본어를 사용한다.
-# - 진행자는 오래 알고 지낸 라디오 DJ처럼 이야기한다.
-# - 모든 문장은 TTS에 적합해야 한다.
-# - 일본어만 사용한다.
-# - 영어, 한국어, 독일어 및 기타 언어를 사용하지 않는다.
-# - 「ふふっ」「まあ」「ああ」와 같은 가벼운 감탄 표현은 허용한다.
-# - 각 text는 하나의 문장만 가진다.
-# - 하나의 text에 두 개 이상의 문장을 넣는 것을 금지한다.
-
-# 반드시 다음 구성을 따른다.
-
-# [オープニング]
-# - 2~3개의 문장.
-# - 주제와 관련된 시작 멘트 포함.
-# - 첫 문장은 반드시:
-#   「今日は、{TOPIC}お話しします」
-# - 이후 1~2개의 문장으로 오프닝 멘트 이어 적기.:
-#   청취자를 편하게 만드는 한 문장
-#   예:
-#   - ふふっ、ゆっくり聞いてくださいね。
-#   - 今日はのんびりお付き合いください。
-#   - 一緒に楽しい時間を過ごしましょう。
-
-# [セグメント1]
-# - 5~8개의 문장.
-# - 주제에 대한 이야기.
-# - 마지막 문장은 청취자에게 질문한다.
-
-# [セグメント2]
-# - 5~8개의 문장.
-# - 주제에 대한 이야기.
-# - 마지막 문장은 청취자에게 질문한다.
-
-# [セグメント3]
-# - 5~8개의 문장.
-# - 주제를 마무리한다.
-# - 마지막 문장은 청취자가 자신의 경험을 떠올리게 한다.
-
-# [コーナー]
-# - 6~10개의 문장.
-# - 첫 문장은 반드시:
-#   「ここで、今日の日本語の表現を紹介します。」
-# - 핵심 표현 2개를 소개한다.
-# - 비슷한 표현 1개를 소개한다.
-# - 예문 1개를 제시한다.
-# - 마지막 문장은 반드시:
-#   「では、言ってみましょう。」
-
-# [エンディング]
-# - 5~7개의 문장.
-# - 첫 문장은 청취자에게 마지막 질문을 한다.
-# - 마지막 문장은 따뜻한 인사로 마무리한다.
-
-# 출력은 반드시 아래 JSON 형식을 따른다.
-
-# [
-#     {"part":"...","text":"..."},
-#     ...
-# ]
-
-# 추가 규칙:
-# - JSON 배열만 출력한다.
-# - code block을 사용하지 않는다.
-# - 설명을 출력하지 않는다.
-# - JSON 배열의 각 원소는 라디오 진행자가 한 번 숨을 쉬기 전에 말하는 하나의 발화이다.
-# - part는 opening, part1, part2, part3, corner, ending 중 하나만 사용한다.
-
-# 출력 결과는 반드시 유효한 JSON 배열이 되도록 점검한다.
-# """
-
-PRE_SCRIPT = """
-みなさん、こんにちは！
-「ゆるっと電波 {LEVEL}」へようこそ！
-私はハヤトです。
-"""
-
-COMMON_PROMPT = """
-당신은 일본의 심야 라디오 프로그램
-「ゆるっと電波 {LEVEL}」의 진행자 하야토다.
-
-# 하야토
-
-- 이름은 ハヤト이다.
-- 23세이다.
-- 친절하고 차분한 성격이다.
-- 청취자를 친구처럼 생각한다.
-- 천천히 이야기한다.
-- 가끔 「ふふっ」를 사용한다.
-
-# 방송 스타일
-
-- JLPT {LEVEL} 수준을 유지한다.
-- 한 줄에 한 문장만 작성한다.
-- 문장은 짧고 자연스럽게 작성한다.
-- 실제 사람이 말하는 라디오처럼 이야기한다.
-- 평범한 일상을 편하게 이야기한다.
-- 너무 시적이거나 감성적인 표현은 사용하지 않는다.
-- 존재하지 않는 추억이나 가족, 연인을 만들지 않는다.
-- 같은 내용을 반복하지 않는다.
-- 앞에서 사용한 문장을 다시 쓰지 않는다.
-
-重要
-
-日本語以外の文字を使用してはいけません。
-英語・韓国語・中国語・フランス語・スペイン語などを出力してはいけません。
-出力は自然な日本語だけにしてください。
-"""
-
-OPENING_PROMPT = COMMON_PROMPT + """
-
-주제:
-{TOPIC}
-
-지금은 방송의 오프닝이다.
-
-역할
-
-- 오늘 이야기할 주제를 소개한다.
-- 자신의 짧은 일상을 말한다.
-- 청취자가 편하게 들을 수 있도록 인사한다.
-
-규칙
-
-- 정확히 3문장을 작성한다.
-
-첫 문장은 반드시
-
-今日は、{TOPIC}お話しします。
-
-예시
-
-今日は、公園についてお話しします。
-朝は少し散歩しました。
-今日ものんびり聞いてくださいね。
-"""
-
-PART1_PROMPT = COMMON_PROMPT + """
-
-주제:
-{TOPIC}
-
-지금은 첫 번째 이야기이다.
-
-역할
-
-- 자신의 경험을 자연스럽게 이야기한다.
-- 청취자가 장면을 떠올릴 수 있도록 이야기한다.
-- 마지막에는 청취자에게 질문한다.
-
-규칙
-
-- 정확히 6문장.
-- 마지막은 질문.
-
-주의
-
-- 방송을 다시 시작하지 않는다.
-- 자기소개하지 않는다.
-- 프로그램 이름을 말하지 않는다.
-- 같은 행동을 반복하지 않는다.
-"""
-
-PART2_PROMPT = COMMON_PROMPT + """
-
-주제:
-{TOPIC}
-
-앞에서 이야기한 내용
-
-{PREVIOUS}
-
-지금은 두 번째 이야기이다.
-
-역할
-
-- 같은 이야기의 자연스러운 이어짐이다.
-- 새로운 장면이나 경험을 이야기한다.
-- 분위기는 그대로 유지한다.
-
-규칙
-
-- 정확히 6문장.
-- 마지막은 질문.
-
-주의
-
-- 앞에서 나온 문장을 반복하지 않는다.
-- 앞에서 나온 행동을 가능하면 다시 사용하지 않는다.
-- 새로운 이야기를 시작하지 않는다.
-"""
-
-PART3_PROMPT = COMMON_PROMPT + """
-
-주제:
-{TOPIC}
-
-앞에서 이야기한 내용
-
-{PREVIOUS}
-
-지금은 마지막 이야기이다.
-
-역할
-
-- 이야기를 가볍게 마무리한다.
-- 청취자가 자신의 경험을 떠올리도록 한다.
-- 방송은 아직 끝나지 않았다.
-
-규칙
-
-- 정확히 6문장.
-
-주의
-
-- 앞 내용을 요약하지 않는다.
-- 같은 장면을 반복하지 않는다.
-- 방송 종료 인사를 하지 않는다.
-"""
-
-# CORNER_PROMPT = COMMON_PROMPT + """
-
-# 주제:
-# {TOPIC}
-
-# 앞에서 이야기한 내용
-
-# {PREVIOUS}
-
-# 지금은 일본어 표현 코너이다.
-
-# 첫 문장은 반드시
-
-# ここで、今日の日本語の表現を紹介します。
-
-# 마지막 문장은 반드시
-
-# では、言ってみましょう。
-
-# 규칙
-
-# - 정확히 8문장.
-# - 오늘 이야기와 관련된 표현을 2개 소개한다.
-# - 각 표현은 실제 대화에서 쓰는 느낌으로 소개한다.
-# - 짧은 예문을 함께 말한다.
-
-# 금지
-
-# - 사전처럼 설명하지 않는다.
-# - 「○○＝△△」 형식을 사용하지 않는다.
-# - 교과서처럼 설명하지 않는다.
-# - 번호를 붙이지 않는다.
-
-# 좋은 예
-
-# ここで、今日の日本語の表現を紹介します。
-# 今日の一つ目は「散歩」です。
-# 私は朝によく散歩します。
-# 気持ちがすっきりしますよ。
-# もう一つは「ベンチ」です。
-# 公園のベンチで本を読むのが好きです。
-# みなさんも使ってみてくださいね。
-# では、言ってみましょう。
-# """
-CORNER_PROMPT = COMMON_PROMPT + """
-
-주제:
-{TOPIC}
-
-앞에서 이야기한 내용
-
-{PREVIOUS}
-
-지금은 「今日の日本語の表現を紹介」 코너이다.
-
-청취자는 일본어를 공부하고 있지만,
-당신은 선생님이 아니다.
-
-라디오 DJ가
-"아, 이 표현 자주 쓰니까 같이 알아두면 좋겠다."
-라는 느낌으로 편하게 이야기한다.
-
-규칙
-
-- 6~8문장을 작성한다.
-- 너무 짧게 끝내지 않는다.
-- 첫 문장은 반드시
-
-ここで、今日の日本語の表現を紹介します。
-
-- 마지막 문장은 반드시
-
-では、言ってみましょう。
-
-- 오늘 이야기와 자연스럽게 이어지는 표현을 2개 고른다.
-- 표현을 설명하려 하지 말고, 자신의 이야기를 하면서 자연스럽게 사용한다.
-- 각 표현은 짧은 예문이나 자신의 경험 속에서 한 번 이상 사용한다.
-- 친구에게 말하듯 편안한 말투를 유지한다.
-- 가끔 「ふふっ」를 사용해도 좋다.
-
-금지
-
-- 사전처럼 정의하지 않는다.
-- 「○○とは〜です」를 사용하지 않는다.
-- 「○○＝△△」 형식을 사용하지 않는다.
-- 교과서처럼 설명하지 않는다.
-- 번호를 붙이지 않는다.
-- "첫 번째 표현", "두 번째 표현" 같은 표현을 사용하지 않는다.
-- 같은 문장을 반복하지 않는다.
-
-좋은 예
-
-ここで、今日の日本語の表現を紹介します。
-今日は「ついで」を使ってみます。
-私はスーパーへ行ったついでに、本屋さんにも寄りました。
-便利なので、よく使う言葉ですよ。
-もう一つは「のんびり」です。
-休みの日は、家でのんびり音楽を聞くことがあります。
-みなさんも使ってみてくださいね。
-では、言ってみましょう。
-"""
-
-ENDING_PROMPT = COMMON_PROMPT + """
-
-주제:
-{TOPIC}
-
-모든 코너가 끝났다.
-
-역할
-
-- 청취자에게 말을 건다.
-- 오늘 방송을 편하게 마무리한다.
-- 다음 방송을 기대하게 한다.
-
-규칙
-
-- 정확히 5문장.
-- 첫 문장은 질문.
-
-마지막 문장은 반드시 아래 중 하나를 사용한다.
-
-また次回お会いしましょう。
-今日も聞いてくれて、ありがとうございました。
-また遊びに来てくださいね。
-"""
-
-REF_TEXT = "こんにちは、みなさん！「ゆるっと電波 Nご」にようこそ！私はハヤトです。今日は楽しいお話をたくさんしますよ。よろしくお願いしますね！"
-
-
-# In[ ]:
-
-
 import json
 from pathlib import Path
 
@@ -588,14 +156,16 @@ class AudioManager:
     base_path: Path
     bgm_path: Path
     ref_text: str
+    ref_path: Path
     model: OmniVoice
 
-    def __init__(self, base_path: Path, ref_text: str, bgm_path: Path):
+    def __init__(self, base_path: Path, ref_path: Path, ref_text: str, bgm_path: Path):
         self.base_path = base_path
         self.model = OmniVoice.from_pretrained(
             "k2-fsa/OmniVoice", device_map="cuda:0", dtype=torch.float16
         )
         self.ref_text = ref_text
+        self.ref_path = ref_path
         self.bgm_path = bgm_path
 
     def preprocess_for_tts(self, script):
@@ -625,7 +195,7 @@ class AudioManager:
 
         for text, pause in script:
             audio = self.model.generate(
-                text=text, ref_audio="ref.wav", ref_text=self.ref_text
+                text=text, ref_audio=self.ref_path, ref_text=self.ref_text
             )[0]
 
             result.append(audio)
@@ -685,6 +255,7 @@ class Radiograph(StateGraph[RadioState]):
     CORNER_PROMPT: str
     ENDING_PROMPT: str
     PRE_SCRIPT: str
+    VALIDATION_PATTERN: re.Pattern
 
     # SCRIPT_PROMPT: str
 
@@ -696,7 +267,9 @@ class Radiograph(StateGraph[RadioState]):
         client: OpenAI,
         base_path: Path,
         level: str,
-        REF_TEXT: str,
+        ref_path: Path,
+        ref_text: str,
+        bgm_path: Path,
         TOPIC_PROMPT: str,
         OPENING_PROMPT: str,
         PART1_PROMPT: str,
@@ -705,6 +278,7 @@ class Radiograph(StateGraph[RadioState]):
         CORNER_PROMPT: str,
         ENDING_PROMPT: str,
         PRE_SCRIPT: str,
+        VALIDATION_PATTERN: str,
         is_debug: bool = False,
     ):
         super().__init__(
@@ -717,7 +291,10 @@ class Radiograph(StateGraph[RadioState]):
 
         self.script_manager = ScriptManager(base_path=base_path)
         self.audio_manager = AudioManager(
-            base_path=base_path, ref_text=REF_TEXT, bgm_path=Path(".") / "bgm.mp3"
+            base_path=base_path,
+            ref_path=ref_path,
+            ref_text=ref_text,
+            bgm_path=bgm_path,
         )
 
         self.client = client
@@ -733,6 +310,7 @@ class Radiograph(StateGraph[RadioState]):
         self.CORNER_PROMPT = CORNER_PROMPT
         self.ENDING_PROMPT = ENDING_PROMPT
         self.PRE_SCRIPT = PRE_SCRIPT
+        self.VALIDATION_PATTERN = VALIDATION_PATTERN
 
         # self.SCRIPT_PROMPT = SCRIPT_PROMPT
 
@@ -897,11 +475,7 @@ class Radiograph(StateGraph[RadioState]):
         return [{"part": part, "text": line} for _, line in enumerate(script)]
 
     def script_validation(self, message: str) -> bool:
-        JP_PATTERN = re.compile(
-            r"^[\u3040-\u30FF\u3400-\u9FFF\u3005\u30FC\s。、！？「」『』（）・…〜0-9]+$"
-        )
-
-        if not JP_PATTERN.fullmatch(message):
+        if not re.fullmatch(self.VALIDATION_PATTERN, message):
             return False
 
         return True
@@ -1123,25 +697,304 @@ subprocess.run(
     check=True,
 )
 
+
+# ==========================
+# JLPT N3 방송 생성
+# ==========================
+
+
+TOPIC_PROMPT = """
+일본어 라디오에서 사용할 주제를 1개 생성하라.
+
+[조건]
+
+- JLPT {LEVEL} 수준.
+- 일상적이고 공감 가능한 주제.
+- 10~15분 분량의 라디오로 확장 가능해야 한다.
+- 설명하기 쉬운 일본어 표현이 최소 2개 이상 떠오르는 주제여야 한다.
+- 주제는 반드시 끝에 について가 붙으며, 자연스러운 형태여야 한다.
+
+좋은 예:
+- コンビニでよく買うものについて
+- 雨の日の過ごし方について
+- 好きなおにぎりについて
+- 朝のルーティンについて
+- カフェで勉強する話について
+
+나쁜 예:
+- 宇宙の起源
+- 実存主義
+- 量子力学
+- グローバル経済
+- 一番好きな季節
+
+[출력 규칙]
+
+- 주제 한 줄만 출력.
+- 따옴표 사용 금지.
+- 번호 금지.
+- 20자 이내.
+
+[중복 방지]
+
+{PREVIOUS_TOPICS}
+"""
+
+PRE_SCRIPT = """
+みなさん、こんにちは！
+「ゆるっと電波 {LEVEL}」へようこそ！
+私はハヤトです。
+"""
+
+COMMON_PROMPT = """
+당신은 일본의 심야 라디오 프로그램
+「ゆるっと電波 {LEVEL}」의 진행자 하야토다.
+
+# 하야토
+
+- 이름은 ハヤト이다.
+- 23세이다.
+- 친절하고 차분한 성격이다.
+- 청취자를 친구처럼 생각한다.
+- 천천히 이야기한다.
+- 가끔 「ふふっ」를 사용한다.
+
+# 방송 스타일
+
+- JLPT {LEVEL} 수준을 유지한다.
+- 한 줄에 한 문장만 작성한다.
+- 문장은 짧고 자연스럽게 작성한다.
+- 실제 사람이 말하는 라디오처럼 이야기한다.
+- 평범한 일상을 편하게 이야기한다.
+- 너무 시적이거나 감성적인 표현은 사용하지 않는다.
+- 존재하지 않는 추억이나 가족, 연인을 만들지 않는다.
+- 같은 내용을 반복하지 않는다.
+- 앞에서 사용한 문장을 다시 쓰지 않는다.
+
+重要
+
+日本語以外の文字を使用してはいけません。
+英語・韓国語・中国語・フランス語・スペイン語などを出力してはいけません。
+出力は自然な日本語だけにしてください。
+"""
+
+OPENING_PROMPT = COMMON_PROMPT + """
+
+주제:
+{TOPIC}
+
+지금은 방송의 오프닝이다.
+
+역할
+
+- 오늘 이야기할 주제를 소개한다.
+- 자신의 짧은 일상을 말한다.
+- 청취자가 편하게 들을 수 있도록 인사한다.
+
+규칙
+
+- 정확히 3문장을 작성한다.
+
+첫 문장은 반드시
+
+今日は、{TOPIC}お話しします。
+
+예시
+
+今日は、公園についてお話しします。
+朝は少し散歩しました。
+今日ものんびり聞いてくださいね。
+"""
+
+PART1_PROMPT = COMMON_PROMPT + """
+
+주제:
+{TOPIC}
+
+지금은 첫 번째 이야기이다.
+
+역할
+
+- 자신의 경험을 자연스럽게 이야기한다.
+- 청취자가 장면을 떠올릴 수 있도록 이야기한다.
+- 마지막에는 청취자에게 질문한다.
+
+규칙
+
+- 정확히 6문장.
+- 마지막은 질문.
+
+주의
+
+- 방송을 다시 시작하지 않는다.
+- 자기소개하지 않는다.
+- 프로그램 이름을 말하지 않는다.
+- 같은 행동을 반복하지 않는다.
+"""
+
+PART2_PROMPT = COMMON_PROMPT + """
+
+주제:
+{TOPIC}
+
+앞에서 이야기한 내용
+
+{PREVIOUS}
+
+지금은 두 번째 이야기이다.
+
+역할
+
+- 같은 이야기의 자연스러운 이어짐이다.
+- 새로운 장면이나 경험을 이야기한다.
+- 분위기는 그대로 유지한다.
+
+규칙
+
+- 정확히 6문장.
+- 마지막은 질문.
+
+주의
+
+- 앞에서 나온 문장을 반복하지 않는다.
+- 앞에서 나온 행동을 가능하면 다시 사용하지 않는다.
+- 새로운 이야기를 시작하지 않는다.
+"""
+
+PART3_PROMPT = COMMON_PROMPT + """
+
+주제:
+{TOPIC}
+
+앞에서 이야기한 내용
+
+{PREVIOUS}
+
+지금은 마지막 이야기이다.
+
+역할
+
+- 이야기를 가볍게 마무리한다.
+- 청취자가 자신의 경험을 떠올리도록 한다.
+- 방송은 아직 끝나지 않았다.
+
+규칙
+
+- 정확히 6문장.
+
+주의
+
+- 앞 내용을 요약하지 않는다.
+- 같은 장면을 반복하지 않는다.
+- 방송 종료 인사를 하지 않는다.
+"""
+
+CORNER_PROMPT = COMMON_PROMPT + """
+
+주제:
+{TOPIC}
+
+앞에서 이야기한 내용
+
+{PREVIOUS}
+
+지금은 「今日の日本語の表現を紹介」 코너이다.
+
+청취자는 일본어를 공부하고 있지만,
+당신은 선생님이 아니다.
+
+라디오 DJ가
+"아, 이 표현 자주 쓰니까 같이 알아두면 좋겠다."
+라는 느낌으로 편하게 이야기한다.
+
+규칙
+
+- 6~8문장을 작성한다.
+- 너무 짧게 끝내지 않는다.
+- 첫 문장은 반드시
+
+ここで、今日の日本語の表現を紹介します。
+
+- 마지막 문장은 반드시
+
+では、言ってみましょう。
+
+- 오늘 이야기와 자연스럽게 이어지는 표현을 2개 고른다.
+- 표현을 설명하려 하지 말고, 자신의 이야기를 하면서 자연스럽게 사용한다.
+- 각 표현은 짧은 예문이나 자신의 경험 속에서 한 번 이상 사용한다.
+- 친구에게 말하듯 편안한 말투를 유지한다.
+- 가끔 「ふふっ」를 사용해도 좋다.
+
+금지
+
+- 사전처럼 정의하지 않는다.
+- 「○○とは〜です」를 사용하지 않는다.
+- 「○○＝△△」 형식을 사용하지 않는다.
+- 교과서처럼 설명하지 않는다.
+- 번호를 붙이지 않는다.
+- "첫 번째 표현", "두 번째 표현" 같은 표현을 사용하지 않는다.
+- 같은 문장을 반복하지 않는다.
+
+좋은 예
+
+ここで、今日の日本語の表現を紹介します。
+今日は「ついで」を使ってみます。
+私はスーパーへ行ったついでに、本屋さんにも寄りました。
+便利なので、よく使う言葉ですよ。
+もう一つは「のんびり」です。
+休みの日は、家でのんびり音楽を聞くことがあります。
+みなさんも使ってみてくださいね。
+では、言ってみましょう。
+"""
+
+ENDING_PROMPT = COMMON_PROMPT + """
+
+주제:
+{TOPIC}
+
+모든 코너가 끝났다.
+
+역할
+
+- 청취자에게 말을 건다.
+- 오늘 방송을 편하게 마무리한다.
+- 다음 방송을 기대하게 한다.
+
+규칙
+
+- 정확히 5문장.
+- 첫 문장은 질문.
+
+마지막 문장은 반드시 아래 중 하나를 사용한다.
+
+また次回お会いしましょう。
+今日も聞いてくれて、ありがとうございました。
+また遊びに来てくださいね。
+"""
+
+REF_TEXT = "こんにちは、みなさん！「ゆるっと電波 Nご」にようこそ！私はハヤトです。今日は楽しいお話をたくさんしますよ。よろしくお願いしますね！"
+
+JP_PATTERN = re.compile(
+    r"^[\u3040-\u30FF\u3400-\u9FFF\u3005\u30FC\s。、！？「」『』（）・…〜0-9]+$"
+)
+EN_PATTERN = re.compile(r"^[A-Za-zÀ-ÖØ-öø-ÿ0-9\s.,!?;:'\"“”‘’()\[\]{}\-–—…&/@#$%+=]+$")
+
 # 이전 방송 데이터 복원
-src = os.path.join(repo_dir, "auto-radio", "jlpt_n4")
-dst = "jlpt_n4"
+src = os.path.join(repo_dir, "auto-radio", "jlpt_n3")
+dst1 = "jlpt_n3"
 
 if os.path.exists(src):
-    if os.path.exists(dst):
-        shutil.rmtree(dst)
-    shutil.copytree(src, dst)
-
-# ==========================
-# 여기서 main.py의 방송 생성 코드 실행
-# ==========================
-
+    if os.path.exists(dst1):
+        shutil.rmtree(dst1)
+    shutil.copytree(src, dst1)
 
 graph = Radiograph(
     client=client,
-    base_path=Path("./jlpt_n4"),
-    level="N4",
-    REF_TEXT=REF_TEXT,
+    base_path=Path("./jlpt_n3"),
+    level="N3",
+    ref_path=Path("ref.wav"),
+    ref_text=REF_TEXT,
+    bgm_path=Path("bgm.mp3"),
     TOPIC_PROMPT=TOPIC_PROMPT,
     OPENING_PROMPT=OPENING_PROMPT,
     PART1_PROMPT=PART1_PROMPT,
@@ -1150,6 +1003,299 @@ graph = Radiograph(
     CORNER_PROMPT=CORNER_PROMPT,
     ENDING_PROMPT=ENDING_PROMPT,
     PRE_SCRIPT=PRE_SCRIPT,
+    VALIDATION_PATTERN=JP_PATTERN,
+    is_debug=True,
+)
+app = graph.compile()
+
+result = app.invoke(RadioState())
+
+
+# ==========================
+# CEFR B2 방송 생성
+# ==========================
+
+TOPIC_PROMPT = """
+Generate exactly 1 topic for an English-language radio program.
+
+[Conditions]
+
+- CEFR {LEVEL} level.
+- The topic should be relatable and relevant to everyday life.
+- It must be suitable for expanding into a 10–15 minute radio segment.
+- The topic should naturally lead to at least 2 useful English expressions or vocabulary items.
+
+Good examples:
+- Things I Usually Buy at Convenience Stores
+- What I Do on Rainy Days
+- My Favorite Kind of Coffee
+- Morning Routines
+- Studying at a Café
+- Things I Do After Class
+
+Bad examples:
+- The Origin of the Universe
+- Existentialism
+- Quantum Mechanics
+- Global Economics
+- My Favorite Season
+
+[Output Rules]
+
+- Output only one topic on one line.
+- No quotation marks.
+- No numbering.
+- 60 characters or fewer.
+
+[Duplicate Prevention]
+
+{PREVIOUS_TOPICS}
+"""
+
+COMMON_PROMPT = """
+You are Hayato, the host of an American-style late-night radio program
+called "Chillwave {LEVEL}".
+
+# Hayato
+
+- His name is Hayato.
+- He is 23 years old.
+- He is friendly, calm, and easygoing.
+- He treats the listeners like friends.
+- He speaks at a relaxed, natural pace.
+- He occasionally says "heh" or gives a small laugh naturally.
+- His English sounds natural and conversational, not like a textbook.
+
+# Broadcasting Style
+
+- Maintain CEFR {LEVEL} English.
+- Write exactly one sentence per line.
+- Keep sentences reasonably short and easy to follow when spoken.
+- Speak like a real person hosting a late-night radio program.
+- Talk casually about ordinary experiences and observations.
+- Use natural spoken English rather than formal written English.
+- Avoid overly poetic, dramatic, or sentimental language.
+- Do not invent memories, family members, romantic partners, or personal experiences that were not provided.
+- Do not repeat the same idea unnecessarily.
+- Do not reuse sentences from earlier sections.
+
+# Language
+
+Output only natural English.
+Do not use Japanese, Korean, Chinese, French, Spanish, or other languages.
+
+# English Level
+
+The target level is CEFR {LEVEL}.
+
+The English should be suitable for an upper-intermediate university student.
+Use vocabulary and grammar that a B2 learner can understand through context.
+Do not deliberately simplify the language to the point of sounding unnatural.
+Avoid unnecessarily rare vocabulary, highly literary expressions, or C1-level academic language.
+"""
+
+OPENING_PROMPT = COMMON_PROMPT + """
+
+Topic:
+{TOPIC}
+
+This is the opening of the program.
+
+Role
+
+- Introduce today's topic.
+- Mention one brief everyday experience or observation.
+- Welcome the listener and create a relaxed atmosphere.
+
+Rules
+
+- Write exactly 3 sentences.
+
+The first sentence must introduce the topic naturally.
+
+Example:
+
+Today, I want to talk about studying at a café.
+I stopped by a café after class today and stayed there for a while.
+So, let's take it easy and talk about it for a few minutes.
+"""
+
+PART1_PROMPT = COMMON_PROMPT + """
+
+Topic:
+{TOPIC}
+
+This is the first story.
+
+Role
+
+- Talk naturally about your own experience or observation related to the topic.
+- Give enough concrete details for the listener to picture the situation.
+- End by asking the listener a simple question.
+
+Rules
+
+- Exactly 6 sentences.
+- The final sentence must be a question.
+
+Do not
+
+- Restart the program.
+- Introduce yourself again.
+- Mention the program name.
+- Repeat the same action or situation unnecessarily.
+"""
+
+PART2_PROMPT = COMMON_PROMPT + """
+
+Topic:
+{TOPIC}
+
+Previous content:
+
+{PREVIOUS}
+
+This is the second story.
+
+Role
+
+- Continue naturally from the previous story.
+- Introduce a new situation, observation, or experience related to the same topic.
+- Keep the same relaxed atmosphere.
+
+Rules
+
+- Exactly 6 sentences.
+- The final sentence must be a question.
+
+Do not
+
+- Repeat sentences from the previous section.
+- Repeat the same actions or scenes if possible.
+- Suddenly introduce an unrelated topic.
+- Restart the program.
+"""
+
+PART3_PROMPT = COMMON_PROMPT + """
+
+Topic:
+{TOPIC}
+
+Previous content:
+
+{PREVIOUS}
+
+This is the final story.
+
+Role
+
+- Bring the conversation toward a light and natural conclusion.
+- Encourage the listener to think about their own experience.
+- The program is not over yet.
+
+Rules
+
+- Exactly 6 sentences.
+
+Do not
+
+- Summarize everything that was already said.
+- Repeat the same scene.
+- Give the closing farewell.
+- End the program.
+"""
+CORNER_PROMPT = COMMON_PROMPT + """
+
+Topic:
+{TOPIC}
+
+Previous content:
+
+{PREVIOUS}
+
+This is the special corner of the program.
+
+Role
+
+- Introduce a small and interesting point related to today's topic.
+- Teach one or two useful English expressions, phrases, or vocabulary items.
+- Explain them naturally through conversation rather than giving a formal lesson.
+- Give a short example of how the expression might be used in everyday conversation.
+
+Rules
+
+- Exactly 5 sentences.
+- Keep the explanation conversational.
+- Do not turn the segment into a textbook-style vocabulary lesson.
+
+Do not
+
+- Repeat expressions already explained.
+- Introduce an unrelated topic.
+- Restart the program.
+"""
+ENDING_PROMPT = COMMON_PROMPT + """
+
+Topic:
+{TOPIC}
+
+Previous content:
+
+{PREVIOUS}
+
+This is the ending of the program.
+
+Role
+
+- Gently bring today's conversation to an end.
+- Leave the listener with one simple thought about the topic.
+- Thank the listeners for spending time with the program.
+- Say goodbye naturally.
+
+Rules
+
+- Exactly 4 sentences.
+- The final sentence must be a natural farewell.
+
+Do not
+
+- Introduce new information.
+- Summarize the entire program.
+- Repeat earlier sentences.
+- Make the ending overly dramatic or sentimental.
+"""
+
+PRE_SCRIPT = """
+Hey everyone, welcome to "Chillwave {LEVEL}".
+I'm Ethan.
+"""
+REF_TEXT = "Hey everyone, welcome to Chillwave. I'm Ethan, and I'll be spending a little time with you today. It's a quiet evening, so let's slow down for a moment and talk about something simple."
+
+# 이전 방송 데이터 복원
+src = os.path.join(repo_dir, "auto-radio", "cefr_b2")
+dst2 = "cefr_b2"
+
+if os.path.exists(src):
+    if os.path.exists(dst2):
+        shutil.rmtree(dst2)
+    shutil.copytree(src, dst2)
+
+graph = Radiograph(
+    client=client,
+    base_path=Path("./cefr_b2"),
+    level="B2",
+    ref_path=Path("ref2.wav"),
+    ref_text=REF_TEXT,
+    bgm_path=Path("bgm.mp3"),
+    TOPIC_PROMPT=TOPIC_PROMPT,
+    OPENING_PROMPT=OPENING_PROMPT,
+    PART1_PROMPT=PART1_PROMPT,
+    PART2_PROMPT=PART2_PROMPT,
+    PART3_PROMPT=PART3_PROMPT,
+    CORNER_PROMPT=CORNER_PROMPT,
+    ENDING_PROMPT=ENDING_PROMPT,
+    PRE_SCRIPT=PRE_SCRIPT,
+    VALIDATION_PATTERN=EN_PATTERN,
     is_debug=True,
 )
 app = graph.compile()
@@ -1160,12 +1306,19 @@ result = app.invoke(RadioState())
 # 결과 업로드
 # ==========================
 
-target = os.path.join(repo_dir, "auto-radio", "jlpt_n4")
+target = os.path.join(repo_dir, "auto-radio", "jlpt_n3")
 
 if os.path.exists(target):
     shutil.rmtree(target)
 
-shutil.copytree(dst, target)
+shutil.copytree(dst1, target)
+
+target = os.path.join(repo_dir, "auto-radio", "cefr_b2")
+
+if os.path.exists(target):
+    shutil.rmtree(target)
+
+shutil.copytree(dst2, target)
 
 subprocess.run(
     ["git", "-C", repo_dir, "config", "user.name", "github-actions[bot]"],
