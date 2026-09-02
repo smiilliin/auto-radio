@@ -7,7 +7,7 @@ import json
 dotenv.load_dotenv()
 
 GITHUB_TOKEN = os.getenv("GH_TOKEN")
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_KEY = os.getenv("OPENROUTER_KEY")
 TEMPLATE_HASH = os.getenv("TEMPLATE_HASH")
 
 query = " ".join(
@@ -51,7 +51,7 @@ result = subprocess.check_output(
         "--disk",
         "20",
         "--env",
-        f"-e OPENROUTER_API_KEY={OPENROUTER_API_KEY}",
+        f"-e OPENROUTER_KEY={OPENROUTER_KEY}",
         # "--ssh",
         # "--direct",
         "--raw",
