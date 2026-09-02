@@ -350,7 +350,7 @@ class Radiograph(StateGraph[RadioState]):
     def run_prompt(
         self,
         prompt: str,
-        model: str = "openai/gpt-oss-20b:free",
+        model: str = "google/gemma-4-31b-it:free",
         reasoning: bool = True,
         validation: Callable[[str], bool] = None,
         max_retries: int = 3,
