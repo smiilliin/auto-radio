@@ -407,9 +407,7 @@ class Radiograph(StateGraph[RadioState]):
 
         self.debug(f"topic_node prompt: {prompt}")
 
-        topic = self.run_prompt(
-            prompt, model="google/gemma-4-26b-a4b-it:free", reasoning=False
-        )
+        topic = self.run_prompt(prompt)
 
         now = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.script_manager.new_topic(topic, now)
