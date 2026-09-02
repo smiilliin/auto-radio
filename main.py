@@ -3,7 +3,6 @@
 
 # In[258]:
 
-
 import dotenv
 
 dotenv.load_dotenv()
@@ -123,6 +122,7 @@ from pydub import AudioSegment
 import time
 
 from omnivoice import OmniVoice
+import torchaudio
 import soundfile as sf
 import torch
 import numpy as np
@@ -165,7 +165,8 @@ class AudioManager:
             "k2-fsa/OmniVoice", device_map="cuda:0", dtype=torch.float16
         )
         self.ref_text = ref_text
-        self.ref_path = ref_path
+        waveform, sample_rate = torchaudio.load(ref_path)
+        self.ref_audio = (waveform, sample_rate)
         self.bgm_path = bgm_path
 
     def preprocess_for_tts(self, script):
@@ -195,7 +196,7 @@ class AudioManager:
 
         for text, pause in script:
             audio = self.model.generate(
-                text=text, ref_audio=self.ref_path, ref_text=self.ref_text
+                text=text, ref_audio=self.ref_audio, ref_text=self.ref_text
             )[0]
 
             result.append(audio)
