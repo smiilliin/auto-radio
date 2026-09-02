@@ -350,8 +350,8 @@ class Radiograph(StateGraph[RadioState]):
     def run_prompt(
         self,
         prompt: str,
-        model: str = "z-ai/glm-5.2:free",
-        reasoning: bool = True,
+        model: str = "qwen/qwen3-32b",
+        reasoning: bool = False,
         validation: Callable[[str], bool] = None,
         max_retries: int = 3,
     ):
