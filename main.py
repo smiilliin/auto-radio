@@ -165,7 +165,10 @@ class AudioManager:
             "k2-fsa/OmniVoice", device_map="cuda:0", dtype=torch.float16
         )
         self.ref_text = ref_text
-        waveform, sample_rate = torchaudio.load(ref_path)
+        waveform, sample_rate = sf.read(ref_path)
+        waveform = torch.tensor(waveform, dtype=torch.float32)
+        if waveform.ndim == 1:
+            waveform = waveform.unsqueeze(0)
         self.ref_audio = (waveform, sample_rate)
         self.bgm_path = bgm_path
 
