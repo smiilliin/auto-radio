@@ -357,7 +357,7 @@ class Radiograph(StateGraph[RadioState]):
         model: str = "qwen/qwen3-32b",
         reasoning: bool = False,
         validation: Callable[[str], bool] = None,
-        max_retries: int = 3,
+        max_retries: int = 5,
     ):
         for attempt in range(max_retries):
             try:
@@ -380,7 +380,13 @@ class Radiograph(StateGraph[RadioState]):
 
             self.debug(f"response: {response}")
 
-            message = response.choices[0].message.content
+            choices = response.choices
+
+            if not choices:
+                self.debug(f"Validation failed for attempt {attempt + 1}. Retrying...")
+                continue
+            
+            message = choices[0].message.content
 
             if not message:
                 self.debug(f"Validation failed for attempt {attempt + 1}. Retrying...")
