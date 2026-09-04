@@ -49,7 +49,6 @@ result = subprocess.check_output(
         # "ghcr.io/smiilliin/auto-radio:latest",
         "--disk",
         "20",
-        "--env",
         # "--ssh",
         # "--direct",
         "--raw",
