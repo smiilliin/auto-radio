@@ -77,20 +77,22 @@ try:
 
         time.sleep(10)
 
-    while True:
-        info = json.loads(
-            subprocess.check_output(
-                ["vastai", "show", "instance", str(instance_id), "--raw"]
-            )
+     while True:
+        result = subprocess.run(
+            ["vastai", "show", "instance", str(instance_id), "--raw"],
+            capture_output=True,
+            text=True,
         )
 
+        # 인스턴스가 Destroy되어 더 이상 조회되지 않음
+        if result.returncode != 0:
+            print("Instance no longer exists. Job finished.")
+            break
+
+        info = json.loads(result.stdout)
         status = info["actual_status"]
 
         print(status)
-
-        if status == "exited":
-            print("Job finished.")
-            break
 
         if status in ("dead", "stopped", "error"):
             raise RuntimeError(f"Container failed: {status}")
@@ -99,11 +101,15 @@ try:
 
 except Exception as e:
     print(f"ERROR: {e}")
-    raise
 finally:
-    subprocess.run(
+    result = subprocess.run(
         ["vastai", "destroy", "instance", str(instance_id)],
         input="y\n",
         text=True,
-        check=True,
+        capture_output=True,
     )
+
+    if result.returncode == 0:
+        print("Instance destroyed.")
+    else:
+        print("Instance was already destroyed.")
