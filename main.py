@@ -1389,8 +1389,16 @@ container_id = os.environ.get("CONTAINER_ID") or os.environ.get("vmid")
 api_key = os.environ.get("CONTAINER_API_KEY")
 
 if container_id and api_key:
-    cmd = f"vastai destroy instance {container_id} --api-key {api_key}"
-    
-    subprocess.Popen(cmd, shell=True)
+    subprocess.run(
+        [
+            "vastai",
+            "destroy",
+            "instance",
+            str(container_id),
+            "--api-key",
+            api_key,
+        ],
+        check=True,
+    )
 else:
     print("Vast.ai 환경 변수를 찾을 수 없어 수동 종료가 필요합니다.")
