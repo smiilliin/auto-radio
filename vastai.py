@@ -77,7 +77,7 @@ try:
 
         time.sleep(10)
 
-     while True:
+    while True:
         result = subprocess.run(
             ["vastai", "show", "instance", str(instance_id), "--raw"],
             capture_output=True,
